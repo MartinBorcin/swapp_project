@@ -58,7 +58,14 @@ def sellers(request):
 
 
 def about(request):
-    pass
+    event = {
+        "reg_start_time": "15.01.2070 08:00",
+        "reg_end_time": "21.01.2070 08:00",
+        "sellers_cap": 200,
+        "start_time": "22.01.2070 08:00 ",
+        "end_time": "22.01.2070 12:00",
+    }
+    return render(request, 'swapp/about.html', context={"event": event})
 
 
 def manage(request):
