@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+{% load swapp_template_tags %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        SwApp -
+        {% block title_block %}
+            Let's Trade!
+        {% endblock %}
+    </title>
+</head>
+<body>
+    <div>
+        {% block navbar_block %}
+            <ul>
+                <li><a href="{% url 'swapp:index' %}">Home</a></li>
+                <li><a href="{% url 'swapp:about' %}">About</a></li>
+                <li><a href="{% url 'swapp:items' %}">Items</a></li>
+            {% if request.user|is_user_type:"seller" %}
+                <li><a href="{% url 'swapp:my-items' %}">MyItems</a></li>
+            {% elif request.user|is_user_type:"staff" %}
+                <li><a href="{% url 'swapp:sellers' %}">Sellers</a></li>
+                <li><a href="{% url 'swapp:manage' %}">Manage</a></li>
+            {% endif %}
+            {% if not user.is_authenticated %}
+                <li><a href="{% url 'swapp:login' %}">Login</a></li>
+                <li><a href="{% url 'swapp:register' %}">Register</a></li>
+            {% else %}
+                <li> Welcome, {{ user.username }}</li>
+                <li><a href="{% url 'swapp:register' %}">Logout</a></li>
+            {% endif %}
+            </ul>
+        {% endblock %}
+    </div>
+    <div>
+        {% block body_block %}
+        {% endblock %}
+    </div>
+</body>
+</html>
