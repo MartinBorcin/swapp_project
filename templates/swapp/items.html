@@ -1,0 +1,65 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    All Items
+{% endblock %}
+
+{% block body_block %}
+    <h1>All Items</h1>
+
+    <div>
+    <h2>Legend</h2>
+        <ul>
+            <li><i>? (icon)</i> = not checked in yet (all items before Event starts)</li>
+            <li><i>X (icon)</i> = never checked in or already sold</li>
+            <li><i>V (icon)</i> = checked in and still available</li>
+        </ul>
+    </div>
+
+    <div>
+    <form method="GET" id="search" action=".">
+        {% csrf_token %}
+        <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." size="30" autofocus/>
+        <input id="search_submit" type="submit" value="Search">
+    </form>
+    </div>
+
+    <div id="search-results">
+         <ul>
+             {% for item in items %}
+                 <li>
+                 <h3>{{ item.name }}</h3>
+                 {% if item.image %}
+                     <img src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
+                 {% endif %}
+                 <p>{{ item.desc }}</p>
+                 <em>£{{ item.price }}</em><br/>
+                 <span>Available: <i>{{ item.available }}</i></span>
+                 </li>
+                 <hr/>
+             {% endfor %}
+         </ul>
+    </div>
+
+    <div class="pagination">
+    <span>
+        {% if items.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ items.previous_page_number }}">previous</a>
+        {% endif %}
+
+        {% for page_num in items.paginator.page_range %}
+            {% if page_num == items.number %}
+                <a href="?page={{ page_num }}"><strong>{{ page_num }}</strong></a>
+            {% else %}
+                <a href="?page={{ page_num }}">{{ page_num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if items.has_next %}
+            <a href="?page={{ items.next_page_number }}">next</a>
+            <a href="?page={{ items.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+    </div>
+{% endblock %}
