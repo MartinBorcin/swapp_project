@@ -24,42 +24,82 @@
     </form>
     </div>
 
-    <div id="search-results">
+    <div id="search-results" >
          <ul>
              {% for item in items %}
-                 <li>
-                 <h3>{{ item.name }}</h3>
+                 <li onclick="openItemView({{ item }})">
+                 <h3 id="item-name">{{ item.name }}</h3>
                  {% if item.image %}
-                     <img src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
+                     <img id="item-image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
                  {% endif %}
-                 <p>{{ item.desc }}</p>
-                 <em>£{{ item.price }}</em><br/>
-                 <span>Available: <i>{{ item.available }}</i></span>
+                 <p id="item-desc">{{ item.desc }}</p>
+                 <em id="item-price">£{{ item.price }}</em><br/>
+                 <span id="item-avail">Available: <i>{{ item.available }}</i></span>
                  </li>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.id }}">
+                      View
+                    </button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="view-item-{{ item.id }}" tabindex="-1" >
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title">Item</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <h4>{{ item.name }}</h4>
+                                    <em>item #{{ item.id }}</em><br/>
+                                    {% if item.image %}
+                                        <img id="item-image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
+                                    {% endif %}
+                                    <p>{{ item.desc }}</p>
+                                    <strong>£{{ item.price }}</strong>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                  <hr/>
              {% endfor %}
          </ul>
     </div>
 
-    <div class="pagination">
-    <span>
+    <nav>
+    <ul class="pagination justify-content-center">
         {% if items.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ items.previous_page_number }}">previous</a>
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo; first</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}">previous</a></li>
+        {% else %}
+            <li class="page-item disabled"><a class="page-link" href="?page=1">&laquo; first</a></li>
+            <li class="page-item disabled"><a class="page-link" href="#">previous</a></li>
         {% endif %}
 
         {% for page_num in items.paginator.page_range %}
             {% if page_num == items.number %}
-                <a href="?page={{ page_num }}"><strong>{{ page_num }}</strong></a>
+                <li class="page-item active"><a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a></li>
             {% else %}
-                <a href="?page={{ page_num }}">{{ page_num }}</a>
+                <li class="page-item"><a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a></li>
             {% endif %}
         {% endfor %}
 
         {% if items.has_next %}
-            <a href="?page={{ items.next_page_number }}">next</a>
-            <a href="?page={{ items.paginator.num_pages }}">last &raquo;</a>
+            <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}">next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.paginator.num_pages }}">last &raquo;</a></li>
+        {% else %}
+            <li class="page-item disabled"><a class="page-link" href="#">next</a></li>
+            <li class="page-item disabled"><a class="page-link" href="?page={{ items.paginator.num_pages }}">last &raquo;</a></li>
         {% endif %}
-    </span>
-    </div>
+    </ul>
+    </nav>
+
+    <script type="application/javascript">
+    function openItemView(item) {
+        const itemModal = new bootstrap.Modal(document.getElementById('view-item-' + item.id));
+        itemModal.toggle()
+    }
+    </script>
 {% endblock %}

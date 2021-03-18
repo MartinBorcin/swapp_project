@@ -1,0 +1,21 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    Register
+{% endblock %}
+
+{% block body_block %}
+    <h1>Registration</h1>
+    {% if registered or user.is_authenticated %}
+        <h2>Thank you for registering, {{ user.username }}.</h2>
+    {% else %}
+        <h2>New Seller</h2>
+        <div>
+        <form class="mt-5" id="reg_form" action="." method="post" >
+            {% csrf_token %}
+            {{ user_form.as_p }}
+            <input class="btn btn-primary" type="submit" name="submit" value="Register" />
+        </form>
+        </div>
+    {% endif %}
+{% endblock %}

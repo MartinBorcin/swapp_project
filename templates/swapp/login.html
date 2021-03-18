@@ -1,0 +1,32 @@
+{% extends "swapp/base.html" %}
+
+{% block title_block %}
+    Login
+{% endblock %}
+
+{% block body_block %}
+    <h1>Login</h1>
+
+    {% if user.is_authentiated %}
+        <h2>You are currently logged in as {{ user.username }}.</h2>
+    {% else %}
+
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+
+        <form style="max-width: 35%;" class="mt-5" id="login_form" method="post" action=".">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="username-field" class="form-label">Username</label>
+                <input id="username-field" type="text" class="form-control" name="username" value=""/>
+            </div>
+            <div class="mb-3">
+                <label for="password-field" class="form-label">Password</label>
+                <input id="password-field" class="form-control" type="password" name="password" value=""/>
+            </div>
+            <input type="submit" class="btn btn-primary" value="Login" />
+        </form>
+
+    {% endif %}
+{% endblock %}
