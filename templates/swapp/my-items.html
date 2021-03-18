@@ -1,0 +1,94 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    My Items
+{% endblock %}
+
+{% block body_block %}
+
+    <h1>My Items</h1>
+
+    <div>
+    <form method="GET" id="search" action=".">
+        {% csrf_token %}
+        <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." size="30" autofocus/>
+        <input id="search_submit" type="submit" value="Search">
+    </form>
+    </div>
+
+    <div id="search-results">
+         <ul>
+             {% for item in items %}
+                 <li>
+                 <h3>{{ item.name }}</h3>
+                 {% if item.image %}
+                     <img src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
+                 {% endif %}
+                 <p>{{ item.desc }}</p>
+                 <em>£{{ item.price }}</em><br/>
+                 <span>Available: <i>{{ item.available }}</i></span>
+                 </li>
+				 <button class="open-button" onclick="openForm()">Edit</button>
+				 
+				 <div class="form-popup" id="myForm">
+					<form action="/action_page.php" class="form-container"> <!-- Link to Database here for action -->
+						<h1>Edit</h1>
+
+						<label for="name"><b>Name</b></label>
+						<input type="text" placeholder={{ item.desc }} name="name" required>
+	
+						<label for="image"><b>Image</b></label>
+						<input type="image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt = {{ item.image }} name="image" required> <!-- Height can be changed here -->
+			
+						<label for="desc"><b>Description</b></label>
+						<input type="text" placeholder=(( item.desc }} name="desc" required>
+			
+						<label for="price"><b>Price</b></label>
+						<input type="text" placeholder=£{{ item.price }} name="price" required>
+			
+						<label for="avail"><b>Available</b></label>
+						<input type="checkbox" placeholder={{ item.available }} name="avail" required>
+
+						<button type="submit" class="btn">Save</button>
+						<button type="button" class="btn cancel" onclick="closeForm()">Cancel</button>
+						</form>
+						
+						<script>
+							function openForm() {
+								document.getElementById("myForm").style.display = "block";
+							}
+
+							function closeForm() {
+								document.getElementById("myForm").style.display = "none";
+							}
+						</script>
+					</div>
+                 <hr/>
+             {% endfor %}
+         </ul>
+    </div>
+
+    <div class="pagination">
+    <span>
+        {% if items.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ items.previous_page_number }}">previous</a>
+        {% endif %}
+
+        {% for page_num in items.paginator.page_range %}
+            {% if page_num == items.number %}
+                <a href="?page={{ page_num }}"><strong>{{ page_num }}</strong></a>
+            {% else %}
+                <a href="?page={{ page_num }}">{{ page_num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if items.has_next %}
+            <a href="?page={{ items.next_page_number }}">next</a>
+            <a href="?page={{ items.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+    </div>
+
+	
+{% endblock %}
