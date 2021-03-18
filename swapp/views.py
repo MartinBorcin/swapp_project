@@ -1,5 +1,10 @@
-from django.shortcuts import render
+from django.contrib.auth.models import Group
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
+from django.urls import reverse
+
+from swapp.forms import UserForm
+from django.contrib.auth import logout, login, authenticate
 
 # Create your views here.
 
@@ -38,12 +43,50 @@ def index(request):
     return render(request, "swapp/index.html", context=context_dict)
 
 
-def login(request):
-    pass
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(username=username, password=password)
+        if user:
+            if user.is_active:
+                login(request, user)
+                return redirect(reverse('swapp:index'))
+            else:
+                return render(request, 'swapp/login.html', context={"message": "Your SwApp account is disabled."})
+        else:
+            print(f"Invalid login details: {username}, {password}")
+            return render(request, 'swapp/login.html', context={"message": "Invalid login details supplied."})
+    else:
+        return render(request, 'swapp/login.html', context={"message": None})
+
+
+def user_logout(request):
+    logout(request)
+    return redirect(reverse('swapp:index'))
 
 
 def register(request):
-    pass
+    registered = False
+    if request.method == 'POST':
+        user_form = UserForm(request.POST)
+
+        if user_form.is_valid():
+            user = user_form.save()
+            user.set_password(user.password)
+            print(f"created user {user.username} with password {user.password}")
+            sellers = Group.objects.get(name='Seller')
+            user.groups.add(sellers)
+            user.save()
+            registered = True
+            login(request, user)
+        else:
+            print(user_form.errors)
+    else:
+        user_form = UserForm()
+
+    return render(request, 'swapp/register.html', context={'user_form': user_form, 'registered': registered})
 
 
 def items(request):
