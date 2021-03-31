@@ -32,14 +32,14 @@ class Checkout(models.Model):
 class Item(models.Model):
     # foreign key
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
-    sold_in = models.ForeignKey(Checkout, on_delete=models.CASCADE, null=True)
+    sold_in = models.ForeignKey(Checkout, on_delete=models.CASCADE, null=True, blank=True)
 
     NAME_MAX_LENGTH = 50
     DESCRIPTION_MAX_LENGTH = 250
     name = models.CharField(max_length=NAME_MAX_LENGTH)
     # django "id" - automatically assigned - no need for them in models
     price = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
-    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
+    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH, blank=True)
     # defaults to False
     sold = models.BooleanField(default=False)
     checked = models.BooleanField(default=False)

@@ -19,7 +19,7 @@ def populate():
          'description': 'A demon that rapes people',
          'price': '666.66',
          'checked': 'True',
-         'picture': 'popobawa-demon.jpg',
+         'picture': 'item_pictures/popobawa-demon.jpg',
          },
     ]
 
@@ -27,12 +27,12 @@ def populate():
         {'name': 'Louis Vuitton Designer Shoes, Women size 8.5',
          'description': 'Worn only once to impress my colleague. Didn\'t work',
          'price': '420.69',
-         'picture': '3.jpg',
+         'picture': 'item_pictures/3.jpg',
          },
         {'name': 'Medium Neon Green Short-Sleeved T-Shirt',
          'description': 'Either Green or Yellow. Depends on your eyes. Come and see',
          'price': '12.00',
-         'picture': '2.jpg',
+         'picture': 'item_pictures/2.jpg',
          },
     ]
 
@@ -45,12 +45,12 @@ def populate():
         {'name': 'Light Grey Extra Large (XL) T-Shirt',
          'description': 'like new. Washed in Perwoll',
          'price': '39.13',
-         'picture': '1.jpg',
+         'picture': 'item_pictures/1.jpg',
          },
         {'name': 'My Shoes size 10, Men',
          'description': 'Brand new, open box never worn',
          'price': '69.00',
-         'picture': '3.jpg',
+         'picture': 'item_pictures/3.jpg',
          },
     ]
 
@@ -58,7 +58,7 @@ def populate():
         {'name': 'Small Neon Yellow Short-Sleeved T-Shirt',
          'description': 'Either Green or Yellow. Depends on your eyes. Come and see',
          'price': '10.00',
-         'picture': '2.jpg',
+         'picture': 'item_pictures/2.jpg',
          },
     ]
 
@@ -74,7 +74,7 @@ def populate():
 
     announcements = [
         {'title': 'Lost AirPods',
-         'picture': 'headphones.jpeg',
+         'picture': 'announcements/headphones.jpeg',
          'description': "The person who lost these headphones in the toilet on second floor should come and clean them.",
          'timestamp': timezone.now(), },
     ]
@@ -197,7 +197,7 @@ def add_announcement(staff, title, description, timestamp, picture):
     announcement.posted_by = staff
     announcement.title = title
     announcement.timestamp = timestamp
-    announcement.description = description
+    announcement.announcement = description
     announcement.picture = picture
 
     announcement.save()
