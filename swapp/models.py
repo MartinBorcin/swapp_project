@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.utils import timezone
 
 # Create your models here.
 
@@ -10,54 +10,6 @@ from django.contrib.auth.models import User
 #
 #     def __str__(self):
 #         return self.User.Username
-
-
-class Item(models.Model):
-    # foreign key
-    seller = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    NAME_MAX_LENGTH = 50
-    DESCRIPTION_MAX_LENGTH = 250
-    name = models.CharField(max_length=NAME_MAX_LENGTH)
-    # django "id" - automatically assigned - no need for them in models
-    price = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
-    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
-    # defaults to False
-    sold = models.BooleanField()
-    checked = models.BooleanField()
-    picture = models.ImageField(upload_to='item_pictures', blank=True)
-
-    def save(self, *args, **kwargs):
-        super(Item, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f"<Item #{self.id}, offered by {self.seller}>"
-
-
-class Event(models.Model):
-    # foreign key
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    # django "id" - automatically assigned - no need for them in models
-    NAME_MAX_LENGTH = 50
-    LOCATION_MAX_LENGTH = 100
-    DESCRIPTION_MAX_LENGTH = 250
-    name = models.CharField(max_length=NAME_MAX_LENGTH)
-    location = models.CharField(max_length=LOCATION_MAX_LENGTH)
-    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
-
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-
-    registration_start_time = models.DateTimeField()
-    registration_end_time = models.DateTimeField()
-    seller_cap = models.PositiveIntegerField(default=200)
-
-    def save(self, *args, **kwargs):
-        super(Event, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f"<Event #{self.id} '{self.name}', created by {self.creator}>"
 
 
 class Checkout(models.Model):
@@ -74,7 +26,56 @@ class Checkout(models.Model):
         super(Checkout, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"<Checkout #{self.id}, performed by: {self.sold_by} at {self.timestamp}>"
+        return f"<Checkout #{str(self.id)}, performed by: {self.sold_by.username} at {self.timestamp}>"
+
+
+class Item(models.Model):
+    # foreign key
+    seller = models.ForeignKey(User, on_delete=models.CASCADE)
+    sold_in = models.ForeignKey(Checkout, on_delete=models.CASCADE, null=True)
+
+    NAME_MAX_LENGTH = 50
+    DESCRIPTION_MAX_LENGTH = 250
+    name = models.CharField(max_length=NAME_MAX_LENGTH)
+    # django "id" - automatically assigned - no need for them in models
+    price = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
+    # defaults to False
+    sold = models.BooleanField(default=False)
+    checked = models.BooleanField(default=False)
+    picture = models.ImageField(upload_to='item_pictures', blank=True)
+
+    def save(self, *args, **kwargs):
+        super(Item, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"<Item #{str(self.id)}, offered by {self.seller.username}>"
+
+
+class Event(models.Model):
+    # foreign key
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # django "id" - automatically assigned - no need for them in models
+    NAME_MAX_LENGTH = 50
+    LOCATION_MAX_LENGTH = 100
+    DESCRIPTION_MAX_LENGTH = 250
+    name = models.CharField(max_length=NAME_MAX_LENGTH)
+    location = models.CharField(max_length=LOCATION_MAX_LENGTH)
+    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
+
+    start_time = models.DateTimeField(default=timezone.now())
+    end_time = models.DateTimeField(default=timezone.now())
+
+    registration_start_time = models.DateTimeField(default=timezone.now())
+    registration_end_time = models.DateTimeField(default=timezone.now())
+    seller_cap = models.PositiveIntegerField(default=200)
+
+    def save(self, *args, **kwargs):
+        super(Event, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"<Event #{str(self.id)} '{self.name}', created by {self.creator.username}>"
 
 
 class Announcement(models.Model):
@@ -82,7 +83,7 @@ class Announcement(models.Model):
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # django "id" - automatically assigned - no need for them in models
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(default=timezone.now())
     TITLE_MAX_LENGTH = 50
     DESCRIPTION_MAX_LENGTH = 250
     title = models.CharField(max_length=TITLE_MAX_LENGTH)
@@ -94,6 +95,6 @@ class Announcement(models.Model):
         super(Announcement, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"<Announcement #{self.id}, published by: {self.posted_by} at {self.timestamp}>"
+        return f"<Announcement #{str(self.id)}, published by: {self.posted_by.username} at {self.timestamp}>"
 
 # hello
