@@ -31,7 +31,7 @@ class Item(models.Model):
         super(Item, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return f"<Item #{self.id}, offered by {self.seller}>"
 
 
 class Event(models.Model):
@@ -51,12 +51,13 @@ class Event(models.Model):
 
     registration_start_time = models.DateTimeField()
     registration_end_time = models.DateTimeField()
+    seller_cap = models.PositiveIntegerField(default=200)
 
     def save(self, *args, **kwargs):
         super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.title
+        return f"<Event #{self.id} '{self.name}', created by {self.creator}>"
 
 
 class Checkout(models.Model):
@@ -73,7 +74,7 @@ class Checkout(models.Model):
         super(Checkout, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.title
+        return f"<Checkout #{self.id}, performed by: {self.sold_by} at {self.timestamp}>"
 
 
 class Announcement(models.Model):
@@ -85,7 +86,7 @@ class Announcement(models.Model):
     TITLE_MAX_LENGTH = 50
     DESCRIPTION_MAX_LENGTH = 250
     title = models.CharField(max_length=TITLE_MAX_LENGTH)
-    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
+    announcement = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
 
     picture = models.ImageField(upload_to='announcements', blank=True)
 
@@ -93,6 +94,6 @@ class Announcement(models.Model):
         super(Announcement, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.title
+        return f"<Announcement #{self.id}, published by: {self.posted_by} at {self.timestamp}>"
 
 # hello

@@ -1,9 +1,14 @@
-from django.contrib.auth.models import Group
+from datetime import datetime, timedelta, timezone
+
+from django.contrib.auth.models import Group, User
+from django.db.models import Sum
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.urls import reverse
 
-from swapp.forms import UserForm
+from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, RegistrationEndTimeForm, \
+    EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm
+from swapp.models import Item, Event, Announcement
 from django.contrib.auth import logout, login, authenticate
 
 # Create your views here.
@@ -34,11 +39,13 @@ def index(request):
     ]
     event_location = "Somestreet 25, 12345ZZ, Sometown, Somecountry"
     event_time = "22.01.2070 08:00 - 22.01.2070 12:00"
+
+    announce = Announcement.objects.all()
+    event = Event.objects.get(id=1)
     context_dict = {
         "announcements": announce,
         "featured_items": featured_items,
-        "event_location": event_location,
-        "event_time": event_time,
+        "event": event,
     }
     return render(request, "swapp/index.html", context=context_dict)
 
@@ -76,8 +83,8 @@ def register(request):
             user = user_form.save()
             user.set_password(user.password)
             print(f"created user {user.username} with password {user.password}")
-            sellers = Group.objects.get(name='Seller')
-            user.groups.add(sellers)
+            seller_group = Group.objects.get(name='Seller')
+            user.groups.add(seller_group)
             user.save()
             registered = True
             login(request, user)
@@ -130,4 +137,130 @@ def about(request):
 
 
 def manage(request):
-    pass
+    approved_items = Item.objects.filter(checked=True)
+    sold_items = Item.objects.filter(sold=True)
+    money_collected = sold_items.aggregate(Sum("price"))["price__sum"]
+    if not money_collected:
+        money_collected = 0.0
+    money_earned = round(money_collected * 0.25, 2)
+    try:
+        items_progress_percent = sold_items.count()*100/approved_items.count()
+    except ZeroDivisionError:
+        print('no approved items')
+        items_progress_percent = 0
+
+    event = Event.objects.get(id=1)
+    event_duration = max(event.end_time - event.start_time, timedelta(seconds=1))  # avoid ZeroDivisionError
+    remaining_time = max(event.end_time - datetime.now(timezone.utc), timedelta(seconds=0))
+    remaining_time -= timedelta(microseconds=remaining_time.microseconds)
+    event_progress_percent = 100 - min(remaining_time.seconds*100/event_duration.seconds, 100)
+    status = {
+        "approved_items_count": approved_items.count(),
+        "sold_items_count": sold_items.count(),
+        "remaining_time": remaining_time,
+        "time_progress": event_progress_percent,
+        "money_collected": money_collected,
+        "money_earned": money_earned,
+        "items_progress": items_progress_percent,
+    }
+
+    # registered_sellers_count = User.objects.filter(groups__in="Seller").count()
+
+    announcement_form = AnnouncementForm(prefix='ann-form')
+    registration_start_form = RegistrationStartTimeForm(prefix='reg-start-time-form', instance=event)
+    registration_end_form = RegistrationEndTimeForm(prefix='reg-end-time-form', instance=event)
+    registration_cap_form = RegistrationCapForm(prefix='reg-cap-form', instance=event)
+    event_start_form = EventStartTimeForm(prefix='event-start-time-form', instance=event)
+    event_end_form = EventEndTimeForm(prefix='event-end-time-form', instance=event)
+    event_loc_form = EventLocationForm(prefix='event-loc-form', instance=event)
+    event_desc_form = EventDescriptionForm(prefix='event-desc-form', instance=event)
+    if request.method == 'POST':
+        print("request.POST:", request.POST)
+        if "ann-form" in request.POST:
+            announcement_form = AnnouncementForm(request.POST, prefix='ann-form')
+            if announcement_form.is_valid():
+                announcement = announcement_form.save(commit=False)
+                announcement.timestamp = datetime.now(timezone.utc)
+                announcement.posted_by = request.user
+                if "ann-form-picture" in request.FILES:
+                    announcement.picture = request.FILES["ann-form-picture"]
+                announcement.save()
+                return redirect(reverse("swapp:index"))
+            else:
+                print(announcement_form.errors)
+
+        if 'reg-start-time-form' in request.POST:
+            registration_start_form = RegistrationStartTimeForm(request.POST, prefix='reg-start-time-form', instance=event)
+            if registration_start_form.is_valid():
+                registration_start_form.save()
+                print("reg start_time: ", event.registration_start_time)
+                return redirect(reverse("swapp:manage"))
+
+        if 'reg-end-time-form' in request.POST:
+            registration_end_form = RegistrationEndTimeForm(request.POST, prefix='reg-end-time-form', instance=event)
+            if registration_end_form.is_valid():
+                registration_end_form.save()
+                return redirect(reverse("swapp:manage"))
+
+        if 'reg-cap-form' in request.POST:
+            registration_cap_form = RegistrationCapForm(request.POST, prefix='reg-cap-form', instance=event)
+            if registration_cap_form.is_valid():
+                registration_cap_form.save()
+                return redirect(reverse("swapp:manage"))
+
+        if 'event-start-time-form' in request.POST:
+            event_start_form = EventStartTimeForm(request.POST, prefix='event-start-time-form', instance=event)
+            if event_start_form.is_valid():
+                event_start_form.save()
+                return redirect(reverse("swapp:manage"))
+
+        if 'event-end-time-form' in request.POST:
+            event_end_form = EventEndTimeForm(request.POST, prefix='event-end-time-form', instance=event)
+            if event_end_form.is_valid():
+                event_end_form.save()
+                return redirect(reverse("swapp:manage"))
+
+        if 'event-loc-form' in request.POST:
+            event_loc_form = EventLocationForm(request.POST, prefix='event-loc-form', instance=event)
+            if event_loc_form.is_valid():
+                event_loc_form.save()
+                return redirect(reverse("swapp:manage"))
+
+        if 'event-desc-form' in request.POST:
+            event_desc_form = EventDescriptionForm(request.POST, prefix='event-desc-form', instance=event)
+            if event_desc_form.is_valid():
+                event_desc_form.save()
+                return redirect(reverse("swapp:manage"))
+
+        if 'event-start-manual' in request.POST:
+            event.start_time = datetime.now(timezone.utc)
+            event.save()
+            return redirect(reverse("swapp:manage"))
+
+        if 'event-end-manual' in request.POST:
+            event.end_time = datetime.now(timezone.utc)
+            event.save()
+            return redirect(reverse("swapp:manage"))
+
+        if 'reg-start-manual' in request.POST:
+            event.registration_start_time = datetime.now(timezone.utc)
+            event.save()
+            return redirect(reverse("swapp:manage"))
+
+        if 'reg-end-manual' in request.POST:
+            event.registration_end_time = datetime.now(timezone.utc)
+            event.save()
+            return redirect(reverse("swapp:manage"))
+
+    return render(request, "swapp/manage.html", context={
+        "status": status,
+        "announcement_form": announcement_form,
+        "registration_start_form": registration_start_form,
+        "registration_end_form": registration_end_form,
+        "registration_cap_form": registration_cap_form,
+        "event_start_form": event_start_form,
+        "event_end_form": event_end_form,
+        "event_loc_form": event_loc_form,
+        "event_desc_form": event_desc_form,
+        "event": event,
+    })
