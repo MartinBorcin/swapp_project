@@ -6,21 +6,21 @@
 {% endblock %}
 
 {% block body_block %}
-    <h1>Event</h1>
+    <h1>Welcome to {{ event.name }}</h1>
     <h2>Basic Info</h2>
-        <p> Event is a sample exchenge event that serves as an example to demonstrate what this webb app is going to look like and perhaps even operate.  </p>
-        <p><strong>Location: </strong>{{ event_location }}</p>
-        <p><strong>Time: </strong>{{ event_time }}</p>
+        <p> {{ event.description }}  </p>
+        <p><strong>Location: </strong>{{ event.location }}</p>
+        <p><strong>Time: </strong>{{ event.start_time }} - {{ event.end_time }}</p>
     <h2>Announcements</h2>
     <ul>
     {% for ann in announcements %}
         <li>
         <h3>{{ ann.title }}</h3>
-        <em> - posted by {{ ann.posted_by }}{{ ann.posted_at }}<br/></em>
-        {% if ann.image %}
-            <img src="{{ MEDIA_URL }}announcements/{{ ann.image }}" alt="{{ ann.image }}" />
+        <em> - posted by {{ ann.posted_by }} on {{ ann.timestamp }}<br/></em>
+        {% if ann.picture %}
+            <img src="{{ MEDIA_URL }}{{ ann.picture }}" alt="{{ ann.picture }}" />
         {% endif %}
-        <p>{{ ann.text }}</p>
+        <p>{{ ann.announcement }}</p>
         </li>
     {% endfor %}
     </ul>

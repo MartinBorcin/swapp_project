@@ -1,0 +1,78 @@
+{% extends "swapp/base.html" %}
+
+{% block title_block %}
+    Manage
+{% endblock %}
+
+{% block body_block %}
+    <h1>Manage</h1>
+
+    <div id="status-report">
+        <h2>Status</h2>
+        <h5>Sold {{ status.sold_items_count }}/{{ status.approved_items_count }} items so far, for a total of £{{ status.money_collected }} (£{{ status.money_earned }} for you)</h5>
+        <div class="progress">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ status.items_progress }}%" aria-valuenow="{{ status.items_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <h5>Remaining {{ status.remaining_time }}</h5>
+        <div class="progress">
+          <div class="progress-bar bg-info" role="progressbar" style="width: {{ status.time_progress }}%" aria-valuenow="{{ status.time_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+
+    <div id="new-announcement">
+        <h2>New Announcement</h2>
+        <form class="mt-5 mb-3" id="announcement_form" action="{% url 'swapp:manage' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ announcement_form.as_p }}
+            <input type="submit" name="{{ announcement_form.prefix }}" value="Publish">
+        </form>
+    </div>
+
+    <div id="reg-control">
+        <h2>Registration</h2>
+        <form class="mt-5 mb-3" id="reg_start_form" action="{% url 'swapp:manage' %}" method="post">
+            {% csrf_token %}
+            {{ registration_start_form.as_p }}
+            <input type="submit" name="{{ registration_start_form.prefix }}" value="Set">
+            <input type="submit" name="reg-start-manual" value="Manually start registration now">
+        </form>
+        <form id="reg_end_form" action="{% url 'swapp:manage' %}" method="post">
+            {% csrf_token %}
+            {{ registration_end_form.as_p }}
+            <input type="submit" name="{{ registration_end_form.prefix }}" value="Set">
+            <input type="submit" name="reg-end-manual" value="Manually end registration now">
+        </form>
+        <form id="reg_cap_form" action="{% url 'swapp:manage' %}" method="post">
+            {% csrf_token %}
+            {{ registration_cap_form.as_p }}
+            <input type="submit" name="{{ registration_cap_form.prefix }}" value="Set">
+        </form>
+    </div>
+
+    <div id="event-contol">
+        <h2>Event - {{ event.name }}</h2>
+        <form class="mt-5 mb-3" id="event_start_form" action="{% url 'swapp:manage' %}" method="post">
+            {% csrf_token %}
+            {{ event_start_form.as_p }}
+            <input type="submit" name="{{ event_start_form.prefix }}" value="Set">
+            <input type="submit" name="event-start-manual" value="Manually start event now">
+        </form>
+        <form id="event_end_form" action="{% url 'swapp:manage' %}" method="post">
+            {% csrf_token %}
+            {{ event_end_form.as_p }}
+            <input type="submit" name="{{ event_end_form.prefix }}" value="Set">
+            <input type="submit" name="event-end-manual" value="Manually end event now">
+        </form>
+        <form id="event_loc_form" action="{% url 'swapp:manage' %}" method="post">
+            {% csrf_token %}
+            {{ event_loc_form.as_p }}
+            <input type="submit" name="{{ event_loc_form.prefix }}" value="Set">
+        </form>
+        <form id="event_desc_form" action="{% url 'swapp:manage' %}" method="post">
+            {% csrf_token %}
+            {{ event_desc_form.as_p }}
+            <input type="submit" name="{{ event_desc_form.prefix }}" value="Set">
+        </form>
+    </div>
+
+{% endblock %}
