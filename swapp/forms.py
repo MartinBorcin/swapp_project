@@ -25,8 +25,6 @@ class AnnouncementForm(forms.ModelForm):
             "announcement": forms.Textarea(attrs={"cols": 40, "rows": 5})
         }
 
-
-
 class RegistrationStartTimeForm(forms.ModelForm):
 
     class Meta:
@@ -77,3 +75,10 @@ class RegistrationCapForm(forms.ModelForm):
     class Meta:
         model = models.Event
         fields = {"seller_cap"}
+
+
+class ItemForm(forms.ModelForm):
+    
+    class Meta:
+        model = models.Item
+        fields = ["name", "picture", "description", "price"]

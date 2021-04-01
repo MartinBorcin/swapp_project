@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
 from django.contrib.auth.models import Group, User
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.urls import reverse
 
 from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, RegistrationEndTimeForm, \
-    EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm
+    EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm, ItemForm
 from swapp.models import Item, Event, Announcement
 from django.contrib.auth import logout, login, authenticate
 
@@ -131,11 +131,17 @@ def my_items(request):
     ]
 
     query = request.GET.get('q', '')
-    filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
+    #filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
+    filtered_items = Item.objects.filter(Q(name__unaccent__icontains = query) | Q(description__unaccent__icontains = query))
     paginator = Paginator(filtered_items, 2)
     page = request.GET.get('page', 1)
     items_on_page = paginator.get_page(page)
-    return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items_on_page})
+    items = list()
+    for item in items_on_page:
+        item_form = ItemForm(instance = item, prefix = "item_edit_form")
+        items.append({"item":item, "item_form":item_form})
+    
+    return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items})
 
 
 def sellers(request):
