@@ -13,3 +13,14 @@ class UserForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2', )
+        
+        
+class AnnouncementForm(forms.ModelForm):
+    # prefix = "ann-form"
+
+    class Meta:
+        model = models.Announcement
+        fields = ['title', 'announcement', 'picture']
+        widgets = {
+            "announcement": forms.Textarea(attrs={"cols": 40, "rows": 5})
+        }

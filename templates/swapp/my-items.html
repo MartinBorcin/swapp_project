@@ -19,7 +19,7 @@
     <div id="search-results">
          <ul>
              {% for item in items %}
-                 <li>
+                <li>
                  <h3>{{ item.name }}</h3>
                  {% if item.image %}
                      <img src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
@@ -28,42 +28,43 @@
                  <em>£{{ item.price }}</em><br/>
                  <span>Available: <i>{{ item.available }}</i></span>
                  </li>
-				 <button class="open-button" onclick="openForm()">Edit</button>
-				 
-				 <div class="form-popup" id="myForm">
-					<form action="/action_page.php" class="form-container"> <!-- Link to Database here for action -->
-						<h1>Edit</h1>
+				 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.id }}" data-bs-whatever="{{ item.id }}">
+                      Edit
+                    </button>
 
-						<label for="name"><b>Name</b></label>
-						<input type="text" placeholder={{ item.desc }} name="name" required>
-	
-						<label for="image"><b>Image</b></label>
-						<input type="image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt = {{ item.image }} name="image" required> <!-- Height can be changed here -->
-			
-						<label for="desc"><b>Description</b></label>
-						<input type="text" placeholder=(( item.desc }} name="desc" required>
-			
-						<label for="price"><b>Price</b></label>
-						<input type="text" placeholder=£{{ item.price }} name="price" required>
-			
-						<label for="avail"><b>Available</b></label>
-						<input type="checkbox" placeholder={{ item.available }} name="avail" required>
-
-						<button type="submit" class="btn">Save</button>
-						<button type="button" class="btn cancel" onclick="closeForm()">Cancel</button>
-						</form>
-						
-						<script>
-							function openForm() {
-								document.getElementById("myForm").style.display = "block";
-							}
-
-							function closeForm() {
-								document.getElementById("myForm").style.display = "none";
-							}
-						</script>
-					</div>
-                 <hr/>
+				<!-- Modal -->
+                <div class="modal fade" id="view-item-{{ item.id }}" tabindex="-1" >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title">Edit Item {{ item.id }}</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+								<label for="item-name" class="col-form-label">Name:</label>
+								<input type="text" class="form-control" id="item-name" value = "{{ item.name }}">
+								<br>
+                                {% if item.image %}
+									<label for="item-image" class="col-form-label">Image:</label>
+									<br>
+                                    <img id="item-image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" style="width:200;height:240;" />
+									<br>
+									<input type="file" class="form-control" id="item-image" accept=".jpg, .jpeg, .png">
+                                {% endif %}
+								<br>
+                                <label for="item-desc" class="col-form-label">Description:</label>
+								<input type="text" class="form-control" id="item-name" value = "{{ item.desc }}" >
+                                <label for="item-price" class="col-form-label">Price:</label>
+								<input type="text" class="form-control" id="item-price" value = "£{{ item.price }}">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+								<button type="button" class="btn btn-primary">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
              {% endfor %}
          </ul>
     </div>
@@ -90,5 +91,11 @@
     </span>
     </div>
 
+    <script type="application/javascript">
+    function openItemView(item) {
+        const itemModal = new bootstrap.Modal(document.getElementById('view-item-' + item.id));
+        itemModal.toggle()
+    }
+    </script>
 	
 {% endblock %}

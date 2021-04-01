@@ -24,6 +24,7 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'swapp:index' %}">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'swapp:about' %}">About</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'swapp:items' %}">Items</a></li>
+				<li class="nav-item"><a class="nav-link" href="{% url 'swapp:my-items' %}">MyItems</a></li>
             {% if request.user|is_user_type:"Seller" %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'swapp:my-items' %}">MyItems</a></li>
             {% endif %}
