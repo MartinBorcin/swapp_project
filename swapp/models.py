@@ -64,11 +64,11 @@ class Event(models.Model):
     location = models.CharField(max_length=LOCATION_MAX_LENGTH)
     description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
 
-    start_time = models.DateTimeField(default=timezone.now())
-    end_time = models.DateTimeField(default=timezone.now())
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(default=timezone.now)
 
-    registration_start_time = models.DateTimeField(default=timezone.now())
-    registration_end_time = models.DateTimeField(default=timezone.now())
+    registration_start_time = models.DateTimeField(default=timezone.now)
+    registration_end_time = models.DateTimeField(default=timezone.now)
     seller_cap = models.PositiveIntegerField(default=200)
 
     def save(self, *args, **kwargs):
@@ -83,7 +83,7 @@ class Announcement(models.Model):
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # django "id" - automatically assigned - no need for them in models
-    timestamp = models.DateTimeField(default=timezone.now())
+    timestamp = models.DateTimeField(default=timezone.now)
     TITLE_MAX_LENGTH = 50
     DESCRIPTION_MAX_LENGTH = 250
     title = models.CharField(max_length=TITLE_MAX_LENGTH)
