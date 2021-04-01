@@ -38,7 +38,7 @@ def populate():
         {'name': 'Grey T-Shirt Large',
          'description': '2 years old, slightly worn',
          'price': '19.99',
-         'picture': '1.jpg',
+         'picture': 'item_pictures/1.jpg',
          },
         {'name': 'Light Grey Extra Large (XL) T-Shirt',
          'description': 'like new. Washed in Perwoll',
