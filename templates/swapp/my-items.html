@@ -40,26 +40,8 @@
                                 <h1 class="modal-title">Edit Item {{ item.item.id }}</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <!-- <div class="modal-body">
-								<label for="item-name" class="col-form-label">Name:</label>
-								<input type="text" class="form-control" id="item-name" value = "{{ item.name }}">
-								<br>
-                                {% if item.image %}
-									<label for="item-image" class="col-form-label">Image:</label>
-									<br>
-                                    <img id="item-image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" style="width:200;height:240;" />
-									<br>
-									<input type="file" class="form-control" id="item-image" accept=".jpg, .jpeg, .png">
-                                {% endif %}
-								<br>
-                                <label for="item-desc" class="col-form-label">Description:</label>
-								<input type="text" class="form-control" id="item-name" value = "{{ item.desc }}" >
-                                <label for="item-price" class="col-form-label">Price:</label>
-								<input type="text" class="form-control" id="item-price" value = "£{{ item.price }}">
-                            </div> -->
-							<form id="item_edit_form" action="{% url 'swapp:my-items' %}" method="post">
+							<form id="item_edit_form" action="." method="post">
 								{% csrf_token %}
-							
 								{{ item.item_form.as_p }}
 								<input type="hidden" name="item_id" value="{{ item.item.id }}">
 								
@@ -73,7 +55,39 @@
                     </div>
                 </div>
                 <hr/>
+				
              {% endfor %}
+			<br> 	
+
+
+			
+			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-item" data-bs-whatever="New Item">
+                      Add Item
+                    </button>
+					
+				<!-- Modal -->
+                <div class="modal fade" id="add-item" tabindex="-1" >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title">Add Item</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+							<form id="item_new_form" action="." method="post">
+								{% csrf_token %}
+								{{ new_item_form.as_p }}
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+								<button type="submit" class="btn btn-primary" name="item_new_form" >Add</button>
+                            </div>
+							</form>
+                        </div>
+                    </div>
+                </div>
+				
+				
+                <hr/>
          </ul>
     </div>
 

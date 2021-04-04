@@ -51,7 +51,6 @@ def index(request):
     return render(request, "swapp/index.html", context=context_dict)
 
 
-#USER LOGIN NOT WORKING
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -148,15 +147,25 @@ def my_items(request,username):
         item_form = ItemForm(instance = item, prefix = "item_edit_form")
         items.append({"item":item, "item_form":item_form})
         
+    new_item_form = ItemForm(prefix = "item_new_form")
+    
+    
     if request.method == "POST":
         print(request.POST)
         if "item_edit_form" in request.POST:
             item_form = ItemForm(request.POST, prefix='item_edit_form', instance = item)
             if item_form.is_valid:
                 item_form.save()
+                
+        if "item_new_form" in request.POST:
+            new_item_form = ItemForm(request.POST, prefix = "item_new_form")
+            if new_item_form.is_valid:
+                new_item = new_item_form.save(commit=False)
+                new_item.seller = user
+                new_item.save()
             
     
-    return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items})
+    return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items, "new_item_form": new_item_form})
 
 def sellers(request):
     pass
