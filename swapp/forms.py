@@ -15,7 +15,6 @@ class UserForm(UserCreationForm):
         model = User
         fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2', )
 
-
 class AnnouncementForm(forms.ModelForm):
     # prefix = "ann-form"
 
@@ -25,7 +24,6 @@ class AnnouncementForm(forms.ModelForm):
         widgets = {
             "announcement": forms.Textarea(attrs={"cols": 40, "rows": 5})
         }
-
 
 class RegistrationStartTimeForm(forms.ModelForm):
 
@@ -77,3 +75,10 @@ class RegistrationCapForm(forms.ModelForm):
     class Meta:
         model = models.Event
         fields = {"seller_cap"}
+
+
+class ItemForm(forms.ModelForm):
+    
+    class Meta:
+        model = models.Item
+        fields = ["name", "picture", "description", "price"]

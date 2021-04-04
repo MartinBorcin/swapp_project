@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta, timezone
 
 from django.contrib.auth.models import Group, User
-from django.db.models import Sum
-from django.shortcuts import render, redirect
+from django.db.models import Sum, Q
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, RegistrationEndTimeForm, \
-    EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm
+    EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm, ItemForm
 from swapp.models import Item, Event, Announcement
 from django.contrib.auth import logout, login, authenticate
 
@@ -117,9 +118,45 @@ def items(request):
     return render(request, 'swapp/items.html', context={"search_query": query, "items": items_on_page})
 
 
-def my_items(request):
-    pass
+def my_items(request,username):
+    user=get_object_or_404(User, username=username)
 
+    query = request.GET.get('q', '')
+    #filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
+    
+    #if django_user.groups.filter(name = Seller).exists():
+    user_items = Item.objects.filter(seller=user)
+        
+    filtered_items = user_items.filter(Q(name__icontains = query) | Q(description__icontains = query))
+    paginator = Paginator(filtered_items, 2)
+    page = request.GET.get('page', 1)
+    items_on_page = paginator.get_page(page)
+    items = list()
+    for item in items_on_page:
+        item_form = ItemForm(instance = item, prefix = "item_edit_form")
+        items.append({"item":item, "item_form":item_form})
+        
+    new_item_form = ItemForm(prefix = "item_new_form")
+    
+    
+    if request.method == "POST":
+        print(request.POST)
+        if "item_edit_form" in request.POST:
+            item_form = ItemForm(request.POST, prefix='item_edit_form', instance = item)
+            if item_form.is_valid:
+                item_form.save()
+                
+        if "item_new_form" in request.POST:
+            new_item_form = ItemForm(request.POST, request.FILES, prefix="item_new_form")
+            if new_item_form.is_valid:
+                new_item = new_item_form.save(commit=False)
+                new_item.seller = user
+                if "item_new_form_picture" in request.FILES:
+                    new_item.picture = request.FILES["item_new_form_picture"]
+                new_item.save()
+            
+    
+    return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items, "new_item_form": new_item_form})
 
 def sellers(request):
     pass
