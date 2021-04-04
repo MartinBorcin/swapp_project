@@ -2,9 +2,10 @@ from datetime import datetime, timedelta, timezone
 
 from django.contrib.auth.models import Group, User
 from django.db.models import Sum, Q
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, RegistrationEndTimeForm, \
     EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm, ItemForm
@@ -50,6 +51,7 @@ def index(request):
     return render(request, "swapp/index.html", context=context_dict)
 
 
+#USER LOGIN NOT WORKING
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -117,22 +119,27 @@ def items(request):
     return render(request, 'swapp/items.html', context={"search_query": query, "items": items_on_page})
 
 
-def my_items(request):
-    all_items = [
-        {"id": 1, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        {"id": 2, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        {"id": 3, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-        {"id": 4, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        {"id": 5, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        {"id": 6, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-        {"id": 7, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        {"id": 8, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        {"id": 9, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-    ]
+def my_items(request,username):
+    user=get_object_or_404(User, username=username)
+    #all_items = [
+        #{"id": 1, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
+        #{"id": 2, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
+        #{"id": 3, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
+        #{"id": 4, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
+        #{"id": 5, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
+        #{"id": 6, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
+        #{"id": 7, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
+        #{"id": 8, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
+        #{"id": 9, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
+    #]
 
     query = request.GET.get('q', '')
     #filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
-    filtered_items = Item.objects.filter(Q(name__unaccent__icontains = query) | Q(description__unaccent__icontains = query))
+    
+    #if django_user.groups.filter(name = Seller).exists():
+    user_items = Item.objects.filter(seller=user)
+        
+    filtered_items = user_items.filter(Q(name__icontains = query) | Q(description__icontains = query))
     paginator = Paginator(filtered_items, 2)
     page = request.GET.get('page', 1)
     items_on_page = paginator.get_page(page)
@@ -140,9 +147,16 @@ def my_items(request):
     for item in items_on_page:
         item_form = ItemForm(instance = item, prefix = "item_edit_form")
         items.append({"item":item, "item_form":item_form})
+        
+    if request.method == "POST":
+        print(request.POST)
+        if "item_edit_form" in request.POST:
+            item_form = ItemForm(request.POST, prefix='item_edit_form', instance = item)
+            if item_form.is_valid:
+                item_form.save()
+            
     
     return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items})
-
 
 def sellers(request):
     pass
