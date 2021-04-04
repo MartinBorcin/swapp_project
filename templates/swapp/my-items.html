@@ -73,7 +73,7 @@
                                 <h1 class="modal-title">Add Item</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-							<form id="item_new_form" action="." method="post">
+							<form id="item_new_form" action="." method="post" enctype="multipart/form-data">
 								{% csrf_token %}
 								{{ new_item_form.as_p }}
 

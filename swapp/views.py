@@ -120,17 +120,6 @@ def items(request):
 
 def my_items(request,username):
     user=get_object_or_404(User, username=username)
-    #all_items = [
-        #{"id": 1, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        #{"id": 2, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        #{"id": 3, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-        #{"id": 4, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        #{"id": 5, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        #{"id": 6, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-        #{"id": 7, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        #{"id": 8, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        #{"id": 9, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-    #]
 
     query = request.GET.get('q', '')
     #filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
@@ -158,10 +147,12 @@ def my_items(request,username):
                 item_form.save()
                 
         if "item_new_form" in request.POST:
-            new_item_form = ItemForm(request.POST, prefix = "item_new_form")
+            new_item_form = ItemForm(request.POST, request.FILES, prefix="item_new_form")
             if new_item_form.is_valid:
                 new_item = new_item_form.save(commit=False)
                 new_item.seller = user
+                if "item_new_form_picture" in request.FILES:
+                    new_item.picture = request.FILES["item_new_form_picture"]
                 new_item.save()
             
     
