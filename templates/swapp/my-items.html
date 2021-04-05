@@ -1,0 +1,129 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    My Items
+{% endblock %}
+
+{% block body_block %}
+
+    <h1>My Items</h1>
+
+    <div>
+    <form method="GET" id="search" action=".">
+        {% csrf_token %}
+        <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." size="30" autofocus/>
+        <input id="search_submit" type="submit" value="Search">
+    </form>
+    </div>
+
+    <div id="search-results">
+         <ul>
+             {% for item in items %}
+                <li>
+                 <h3>{{ item.item.name }}</h3>
+                 {% if item.item.picture %}
+                     <img src="{{ MEDIA_URL }}{{ item.item.picture }}" alt="{{ item.item.picture }}" />
+                 {% endif %}
+                 <p>{{ item.item.desc }}</p>
+                 <em>£{{ item.item.price }}</em><br/>
+                 <span>Available: <i>{{ item.item.available }}</i></span>
+                 </li>
+				 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.item.id }}" data-bs-whatever="{{ item.item.id }}">
+                      Edit
+                    </button>
+
+				<!-- Modal -->
+                <div class="modal fade" id="view-item-{{ item.item.id }}" tabindex="-1" >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title">Edit Item {{ item.item.id }}</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+							<form id="item_edit_form" action="." method="post">
+								{% csrf_token %}
+								{{ item.item_form.as_p }}
+								<input type="hidden" name="item_id" value="{{ item.item.id }}">
+								
+						
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+								<button type="submit" class="btn btn-primary" name="item_edit_form" >Save changes</button>
+                            </div>
+							</form>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+				
+             {% endfor %}
+			<br> 	
+
+
+			
+			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-item" data-bs-whatever="New Item">
+                      Add Item
+                    </button>
+					
+				<!-- Modal -->
+                <div class="modal fade" id="add-item" tabindex="-1" >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title">Add Item</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+							<form id="item_new_form" action="." method="post" enctype="multipart/form-data">
+								{% csrf_token %}
+								{{ new_item_form.as_p }}
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+								<button type="submit" class="btn btn-primary" name="item_new_form" >Add</button>
+                            </div>
+							</form>
+                        </div>
+                    </div>
+                </div>
+				
+				
+                <hr/>
+         </ul>
+    </div>
+
+    <nav>
+    <ul class="pagination justify-content-center">
+        {% if items.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1&q={{ request.GET.q }}">&laquo; first</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}&q={{ request.GET.q }}">previous</a></li>
+        {% else %}
+            <li class="page-item disabled"><a class="page-link" href="?page=1&q={{ request.GET.q }}">&laquo; first</a></li>
+            <li class="page-item disabled"><a class="page-link" href="#">previous</a></li>
+        {% endif %}
+
+        {% for page_num in items.paginator.page_range %}
+            {% if page_num == items.number %}
+                <li class="page-item active"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}">{{ page_num }}</a></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}">{{ page_num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if items.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}&q={{ request.GET.q }}">next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}">last &raquo;</a></li>
+        {% else %}
+            <li class="page-item disabled"><a class="page-link" href="#">next</a></li>
+            <li class="page-item disabled"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}">last &raquo;</a></li>
+        {% endif %}
+    </ul>
+    </nav>
+
+    <script type="application/javascript">
+    function openItemView(item) {
+        const itemModal = new bootstrap.Modal(document.getElementById('view-item-' + item.id));
+        itemModal.toggle()
+    }
+    </script>
+	
+{% endblock %}

@@ -106,3 +106,10 @@ class RegistrationCapForm(forms.ModelForm):
         if cap < current_seller_count:
             raise forms.ValidationError("The seller cap can't be lower than the current number of registered Sellers (%(count)s)", params={"count": current_seller_count}, code="low")
         return cap
+
+
+class ItemForm(forms.ModelForm):
+
+    class Meta:
+        model = models.Item
+        fields = ["name", "picture", "description", "price"]

@@ -1,7 +1,5 @@
 import os
 
-from swapp_project import settings
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE',
                       'swapp_project.settings')
 
@@ -40,7 +38,7 @@ def populate():
         {'name': 'Grey T-Shirt Large',
          'description': '2 years old, slightly worn',
          'price': '19.99',
-         'picture': '1.jpg',
+         'picture': 'item_pictures/1.jpg',
          },
         {'name': 'Light Grey Extra Large (XL) T-Shirt',
          'description': 'like new. Washed in Perwoll',
@@ -66,10 +64,10 @@ def populate():
         {'name': 'First Swapp Event',
          'location': "University of Glasgow, GMU",
          'description': "some event description here",
-         'start': timezone.datetime(2021, 6, 20, 9, 0, 0, 0),
-         'end': timezone.datetime(2021, 6, 20, 19, 0, 0, 0),
-         'reg_start': timezone.datetime(2021, 5, 15, 0, 1, 0, 0),
-         'reg_end': timezone.datetime(2021, 6, 15, 23, 59, 0, 0), },
+         'start': timezone.datetime(2021, 6, 20, 9, 0, 0, 0, timezone.utc),
+         'end': timezone.datetime(2021, 6, 20, 19, 0, 0, 0, timezone.utc),
+         'reg_start': timezone.datetime(2021, 5, 15, 0, 1, 0, 0, timezone.utc),
+         'reg_end': timezone.datetime(2021, 6, 15, 23, 59, 0, 0, timezone.utc), },
     ]
 
     announcements = [
@@ -178,7 +176,7 @@ def add_checkout(staff, timestamp, total, paid, change):
 
 
 def add_event(staff, name, location, description, start, end, reg_start, reg_end):
-    event = Event.objects.get_or_create(creator=staff, name=name)[0]
+    event = Event.objects.get_or_create(id=1)[0]
     event.creator = staff
     event.name = name
     event.location = location
