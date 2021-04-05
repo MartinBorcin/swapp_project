@@ -1,0 +1,101 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    Checkout #{{ checkout.id }}
+{% endblock %}
+
+{% block body_block %}
+    <h1>Checkout #{{ checkout.id }}</h1>
+    {% if not checkout.completed %}
+        <h2>Add Item:</h2>
+        <form method="post" action="{% url 'swapp:checkout' checkout.id %}">
+            {% csrf_token %}
+            {% if item_error %}
+                <p class="errors">{{ item_error }}</p>
+            {% endif %}
+            <label for="item-id">ID: </label>
+            <input id="item-id" name="item_id" type="text" value="{{ previous_item_id }}" placeholder="Enter Item ID...">
+            <input name="item-id-form" type="submit" value="+ Add">
+        </form>
+    {% else %}
+        <h2>Checkout completed successfully!</h2>
+    {% endif %}
+    <h2>Items</h2>
+    <table id="item-table" class="table">
+        <thead class="table-light">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">ID</th>
+            <th scope="col">Price</th>
+            {% if not checkout.completed %}
+            <th scope="col">Action</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in checkout_items %}
+        <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ item.name }}</td>
+            <td>{{ item.id }}</td>
+            <td style="text-align: right">{{ item.price }}</td>
+            {% if not checkout.completed %}
+            <td>
+                <form action="{% url 'swapp:checkout' checkout.id %}" method="post">
+                {% csrf_token %}
+                    <input type="hidden" name="item-id" value="{{ item.id }}">
+                    <input class="btn btn-primary" type="submit" name="remove-item" value="Remove">
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+        <tr>
+            <th scope="row">{{ total_count }}</th>
+            <td colspan="2">Total</td>
+            <td style="text-align: right">{{ checkout.total|floatformat:2 }}</td>
+            <td></td>
+        </tr>
+        </tfoot>
+    </table>
+    <div id="price-summary">
+    <p>Total: {{ checkout.total|floatformat:2 }}</p>
+    <p>Paid: {{ checkout.paid|floatformat:2 }}</p>
+    <p>Change: {{ checkout.change|floatformat:2 }}</p>
+    </div>
+    {% if not checkout.completed %}
+    <form action="{% url 'swapp:checkout' checkout.id %}" method="post">
+        {% csrf_token %}
+        <label for="paid">Customer paid:</label>
+        <input id="paid" type="text" name="paid" placeholder="0.00" value="{{ checkout.paid|floatformat:2 }}">
+        <input type="submit" name="paid-form" value="$ Paid">
+        </form>
+    <form action="{% url 'swapp:checkout' checkout.id %}" method="post">
+    {% csrf_token %}
+        <input class="btn btn-primary {% if checkout.change < 0 %}disabled{% endif %}" type="submit" name="checkout-done" value="Confirm Payment">
+        <input
+                id='cancel-checkout-btn'
+                onclick="alert('{{ cancel_warning }}')"
+                class="btn btn-secondary"
+                type="submit"
+                name="checkout-done"
+                value="Cancel"
+        >
+    </form>
+    {% else %}
+        <a href="{% url 'swapp:new-checkout' %}" class="btn btn-primary">+ New Checkout</a>
+        <a href="{% url 'swapp:select-checkout' %}" class="btn btn-secondary" >x Close</a>
+        <button class="btn btn-info" onclick="exportReport()">Export</button>
+    {% endif %}
+
+    <script type="application/javascript">
+        function exportReport() {
+            let win = window.open("{% url 'swapp:checkout-export' checkout.id %}");
+            win.print();
+            setTimeout(function() {win.close()}, 10);
+        }
+    </script>
+{% endblock %}

@@ -21,6 +21,7 @@ class Checkout(models.Model):
     total = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     paid = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     change = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    completed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         super(Checkout, self).save(*args, **kwargs)
@@ -49,7 +50,7 @@ class Item(models.Model):
         super(Item, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"<Item #{str(self.id)}, offered by {self.seller.username}>"
+        return f"Item #{str(self.id)}, offered by {self.seller.username}"
 
 
 class Event(models.Model):

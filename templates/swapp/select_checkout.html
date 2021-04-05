@@ -1,0 +1,23 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    Checkout
+{% endblock %}
+
+{% block body_block %}
+    <h1>Checkout</h1>
+    <h2>Whould you like to start a new checkout session?</h2>
+    <a href="{% url 'swapp:new-checkout' %}" class="btn btn-primary">+ New</a>
+    <h2>Active checkout sessions:</h2>
+    <ul>
+    {% for checkout_session in active_sessions %}
+        <li><a {% if checkout_session.sold_by != user %}onclick="alert('{{ different_user_alert }}')"{% endif %} href="{% url 'swapp:checkout' checkout_session.id %}">Checkout #{{ checkout_session.id }}, started by {{ checkout_session.sold_by }} at {{ checkout_session.timestamp }}</a></li>
+    {% endfor %}
+    </ul>
+    <h2>Completed checkout sessions:</h2>
+    <ul>
+    {% for checkout_session in completed_sessions %}
+        <li><a href="{% url 'swapp:checkout' checkout_session.id %}">Checkout #{{ checkout_session.id }}, started by {{ checkout_session.sold_by }} at {{ checkout_session.timestamp }}</a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}

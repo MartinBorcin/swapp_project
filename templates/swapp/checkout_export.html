@@ -1,0 +1,57 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    export Checkout #{{ checkout.id }}
+{% endblock %}
+
+{% block navbar_block %}
+{% endblock %}
+
+{% block body_block %}
+    <table id="item-table" class="table">
+        <thead class="table-light">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">ID</th>
+            <th scope="col">Price</th>
+            {% if not checkout.completed %}
+            <th scope="col">Action</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in checkout_items %}
+        <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ item.name }}</td>
+            <td>{{ item.id }}</td>
+            <td style="text-align: right">{{ item.price }}</td>
+            {% if not checkout.completed %}
+            <td>
+                <form action="{% url 'swapp:checkout' checkout.id %}" method="post">
+                {% csrf_token %}
+                    <input type="hidden" name="item-id" value="{{ item.id }}">
+                    <input class="btn btn-primary" type="submit" name="remove-item" value="Remove">
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+        <tr>
+            <th scope="row">{{ total_count }}</th>
+            <td colspan="2">Total</td>
+            <td style="text-align: right">{{ checkout.total|floatformat:2 }}</td>
+            <td></td>
+        </tr>
+        </tfoot>
+    </table>
+    <div id="price-summary">
+    <p>Total: {{ checkout.total|floatformat:2 }}</p>
+    <p>Paid: {{ checkout.paid|floatformat:2 }}</p>
+    <p>Change: {{ checkout.change|floatformat:2 }}</p>
+    </div>
+
+{% endblock %}

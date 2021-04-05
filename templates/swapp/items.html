@@ -20,6 +20,16 @@
     <form method="GET" id="search" action=".">
         {% csrf_token %}
         <input style="max-width: 500px" class="form-control mb-3" type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." autofocus/>
+
+        <!--
+        <label for="choose-ordering-name">Name</label>
+        <input id="choose-ordering-name" type="radio" name="order" value="name">
+        <label for="choose-ordering-price">Price</label>
+        <input id="choose-ordering-price" type="radio" name="order" value="price">
+        <label for="choose-ordering-date">ID</label>
+        <input id="choose-ordering-date" type="radio" name="order" value="id">
+        -->
+
         <input class="btn btn-primary mb-3" id="search_submit" type="submit" value="Search">
         <a class="btn btn-secondary mb-3" id="search_clear" href="?page=1&q=">Clear</a>
     </form>
@@ -28,18 +38,38 @@
     <div id="search-results" >
          <ul>
              {% for item in items %}
-                 <li onclick="openItemView({{ item }})">
-                 <h3 id="item-name">{{ item.name }}</h3>
-                 {% if item.image %}
-                     <img id="item-image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
-                 {% endif %}
-                 <p id="item-desc">{{ item.desc }}</p>
-                 <em id="item-price">£{{ item.price }}</em><br/>
-                 <span id="item-avail">Available: <i>{{ item.available }}</i></span>
-                 </li>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.id }}">
-                      View
-                    </button>
+                 <div onclick="openItemView('{{ item.id }}')" class="card mb-3" style="max-width: 540px;">
+                     <div class="row g-0">
+                         {% if item.picture %}
+                         <div class="col-md-4">
+                             <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                         </div>
+                         {% endif %}
+                         <div class="col-md-8">
+                             <div class="card-body">
+                                 <h5 class="card-title">{{ item.name }}</h5>
+                                 <p id="item-desc" class="card-text">{{ item.description }}.</p>
+                                 <em id="item-price" class="card-text">£{{ item.price }}</em><br/>
+                                 <!-- TODO: add bootstrap icons -->
+                                 <span id="item-avail" class="card-text">Available: <i>{% if item.checked and not item.sold %}YES{% else %}NO{% endif %}</i></span><br/>
+                                 <button type="button" class="btn btn-primary" >View</button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+
+{#                 <li onclick="openItemView('{{ item.id }}')">#}
+{#                 <h3 id="item-name">{{ item.name }}</h3>#}
+{#                 {% if item.picture %}#}
+{#                     <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />#}
+{#                 {% endif %}#}
+{#                 <p id="item-desc">{{ item.description }}</p>#}
+{#                 <em id="item-price">£{{ item.price }}</em><br/>#}
+{#                 <span id="item-avail">Available: <i>{% if item.checked and not item.sold %}YES{% else %}NO{% endif %}</i></span>#}
+{#                 </li>#}
+{#                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.id }}">#}
+{#                      View#}
+{#                    </button>#}
 
                     <!-- Modal -->
                     <div class="modal fade" id="view-item-{{ item.id }}" tabindex="-1" >
@@ -52,8 +82,8 @@
                                 <div class="modal-body">
                                     <h4>{{ item.name }}</h4>
                                     <em>item #{{ item.id }}</em><br/>
-                                    {% if item.image %}
-                                        <img id="item-image" src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
+                                    {% if item.picture %}
+                                        <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
                                     {% endif %}
                                     <p>{{ item.desc }}</p>
                                     <strong>£{{ item.price }}</strong>
@@ -64,7 +94,6 @@
                             </div>
                         </div>
                     </div>
-                 <hr/>
              {% endfor %}
          </ul>
     </div>
@@ -72,34 +101,34 @@
     <nav>
     <ul class="pagination justify-content-center">
         {% if items.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page=1&q={{ request.GET.q }}">&laquo; first</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}&q={{ request.GET.q }}">previous</a></li>
+            <li class="page-item"><a class="page-link" href="?page=1&q={{ request.GET.q }}&order={{ request.GET.order }}">&laquo; first</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}&q={{ request.GET.q }}&order={{ request.GET.order }}">previous</a></li>
         {% else %}
-            <li class="page-item disabled"><a class="page-link" href="?page=1&q={{ request.GET.q }}">&laquo; first</a></li>
+            <li class="page-item disabled"><a class="page-link" href="?page=1&q={{ request.GET.q }}&order={{ request.GET.order }}">&laquo; first</a></li>
             <li class="page-item disabled"><a class="page-link" href="#">previous</a></li>
         {% endif %}
 
         {% for page_num in items.paginator.page_range %}
             {% if page_num == items.number %}
-                <li class="page-item active"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}">{{ page_num }}</a></li>
+                <li class="page-item active"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}&order={{ request.GET.order }}">{{ page_num }}</a></li>
             {% else %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}">{{ page_num }}</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}&order={{ request.GET.order }}">{{ page_num }}</a></li>
             {% endif %}
         {% endfor %}
 
         {% if items.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}&q={{ request.GET.q }}">next</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}">last &raquo;</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}&q={{ request.GET.q }}&order={{ request.GET.order }}">next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}&order={{ request.GET.order }}">last &raquo;</a></li>
         {% else %}
             <li class="page-item disabled"><a class="page-link" href="#">next</a></li>
-            <li class="page-item disabled"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}">last &raquo;</a></li>
+            <li class="page-item disabled"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}&order={{ request.GET.order }}">last &raquo;</a></li>
         {% endif %}
     </ul>
     </nav>
 
     <script type="application/javascript">
-    function openItemView(item) {
-        const itemModal = new bootstrap.Modal(document.getElementById('view-item-' + item.id));
+    function openItemView(item_id) {
+        const itemModal = new bootstrap.Modal(document.getElementById('view-item-' + item_id));
         itemModal.toggle()
     }
     </script>

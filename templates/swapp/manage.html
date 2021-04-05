@@ -9,13 +9,21 @@
 
     <div id="status-report">
         <h2>Status</h2>
-        <h5>Sold {{ status.sold_items_count }}/{{ status.approved_items_count }} items so far, for a total of £{{ status.money_collected }} (£{{ status.money_earned }} for you)</h5>
-        <div class="progress">
-            <div class="progress-bar bg-success" role="progressbar" style="width: {{ status.items_progress }}%" aria-valuenow="{{ status.items_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+        <h5 id="sold-items-counter"></h5>
+        <div class="progress mb-2">
+            <div id="sold-items-progress" class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-        <h5>Remaining {{ status.remaining_time }}</h5>
-        <div class="progress">
-          <div class="progress-bar bg-info" role="progressbar" style="width: {{ status.time_progress }}%" aria-valuenow="{{ status.time_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+        <h5 id="remaining-time-counter"></h5>
+        <div class="progress mb-2">
+          <div id='remaining-time-progress' class="progress-bar bg-info" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <h5 id="remaining-reg-time-counter" ></h5>
+        <div class="progress mb-2">
+          <div id='remaining-reg-time-progress' class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <h5 id="reg-counter" ></h5>
+        <div class="progress mb-2">
+          <div id='reg-progress' class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     </div>
 
@@ -74,5 +82,79 @@
             <input type="submit" name="{{ event_desc_form.prefix }}" value="Set">
         </form>
     </div>
+
+    <script type="application/javascript">
+
+    function getTimerStatus(startTimestamp, endTimestamp) {
+        let now = new Date();
+        let endTime = new Date(endTimestamp);
+        let startTime = new Date(startTimestamp);
+        let totalDuration = endTime - startTime;
+        let currentDuration = now - startTime;
+        let remainingDuration = endTime - now;
+        let progressPercent = currentDuration * 100 / totalDuration;
+
+        if (remainingDuration < 0) remainingDuration = 0;
+        if (progressPercent > 100) progressPercent = 100;
+
+        return {
+            "progressPercent": progressPercent,
+            "remainingDays": Math.floor(remainingDuration / (1000 * 60 * 60 * 24)), // remaining time / ms in day
+            "remainingHours": Math.floor((remainingDuration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), // remaining time % ms in day / ms in hour
+            "remainingMinutes": Math.floor((remainingDuration % (1000 * 60 * 60)) / (1000 * 60)), // remaining time % ms in hour / ms in minute
+            "remainingSeconds": Math.floor((remainingDuration % (1000 * 60)) / 1000), // remaining time % ms in minute / ms in sec
+        };
+    }
+
+    function refreshEventTimer() {
+        let status = getTimerStatus({{ event_start_timestamp }}, {{ event_end_timestamp }})
+
+        let time_counter = document.getElementById('remaining-time-counter');
+        let time_progress = document.getElementById('remaining-time-progress');
+        time_counter.innerHTML = "Remaining time until end of event: " + status.remainingDays + " days " + status.remainingHours + "h " + status.remainingMinutes + 'm ' + status.remainingSeconds + "s";
+        time_counter.setAttribute('aria-valuenow', status.progressPercent.toString())
+        time_progress.style.width = status.progressPercent + "%";
+
+    }
+
+    function refreshRegTimer() {
+        let status = getTimerStatus({{ reg_start_timestamp }}, {{ reg_end_timestamp }})
+
+        let time_counter = document.getElementById('remaining-reg-time-counter');
+        let time_progress = document.getElementById('remaining-reg-time-progress');
+        time_counter.innerHTML = "Remaining registration time: " + status.remainingDays + " days " + status.remainingHours + "h " + status.remainingMinutes + 'm ' + status.remainingSeconds + "s";
+        time_counter.setAttribute('aria-valuenow', status.progressPercent.toString())
+        time_progress.style.width = status.progressPercent + "%";
+    }
+
+    function refreshItemsAndRegs() {
+        let items_counter = document.getElementById('sold-items-counter');
+        let items_progress = document.getElementById('sold-items-progress');
+
+        let reg_counter = document.getElementById('reg-counter');
+        let reg_progress = document.getElementById('reg-progress');
+
+        let newStatus = new XMLHttpRequest();
+        newStatus.onreadystatechange = function () {
+            if (newStatus.readyState === 4 && newStatus.status === 200) {
+                let status = JSON.parse(newStatus.response);
+                items_counter.innerHTML = "Sold " + status.sold_items_count + "/" + status.approved_items_count + " items so far, for a total of £" + status.money_collected + " (£" + status.money_earned + " for you)";
+                items_progress.style.width = status.items_progress_percent + "%";
+                items_progress.setAttribute('aria-valuenow', status.items_progress_percent.toString())
+
+                reg_counter.innerHTML = "Registered sellers: " + status.reg_count + "/" + status.reg_cap;
+                reg_progress.style.width = status.reg_progress_percent + '%';
+                reg_progress.setAttribute('aria-valuenow', status.reg_progress_percent);
+            }
+        }
+        newStatus.open("GET", "{% url 'swapp:refresh-status' %}");
+        newStatus.send();
+    }
+    refreshItemsAndRegs()
+    refreshEventTimer()
+    refreshRegTimer()
+    setInterval(function () {refreshEventTimer(); refreshRegTimer()}, 1000) // refresh countdown every second
+    setInterval(refreshItemsAndRegs, 5000) // refresh sold items and registrations count every 5 seconds
+    </script>
 
 {% endblock %}
