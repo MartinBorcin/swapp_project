@@ -1,0 +1,59 @@
+{% extends 'swapp/base.html' %}
+
+{% block title_block %}
+    Sellers
+{% endblock %}
+
+{% block body_block %}
+    <h1>Sellers</h1>
+    <form method="GET" id="search" action=".">
+        {% csrf_token %}
+        <input style="max-width: 500px" class="form-control mb-3" type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." autofocus/>
+
+        <!--
+        <label for="choose-ordering-fname">First Name</label>
+        <input id="choose-ordering-fname" type="radio" name="order" value="first_name">
+        <label for="choose-ordering-lname">Last Name</label>
+        <input id="choose-ordering-lname" type="radio" name="order" value="last_name">
+        <label for="choose-ordering-id">ID</label>
+        <input id="choose-ordering-id" type="radio" name="order" value="id">
+        <label for="choose-ordering-uname">username</label>
+        <input id="choose-ordering-uname" type="radio" name="order" value="username">
+        <label for="choose-ordering-sold">Sold Items</label>
+        <input id="choose-ordering-sold" type="radio" name="order" value="sold_items">
+        <label for="choose-ordering-registered">Registered Items Items</label>
+        <input id="choose-ordering-registered" type="radio" name="order" value="registered_items">
+        -->
+
+        <input class="btn btn-primary mb-3" id="search_submit" type="submit" value="Search">
+        <a class="btn btn-secondary mb-3" id="search_clear" href="?q=">Clear</a>
+    </form>
+    <table id="item-table" class="table">
+        <thead class="table-light">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
+            <th scope="col">Username</th>
+            <th scope="col">ID</th>
+            <th scope="col" style="text-align: right">Sold/Checked/Registered</th>
+            <th scope="col">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for seller in sellers %}
+        <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ seller.seller.first_name }}</td>
+            <td>{{ seller.seller.last_name }}</td>
+            <td>{{ seller.seller.username }}</td>
+            <td>{{ seller.seller.id }}</td>
+            <td style="text-align: right">{{ seller.items_sold }}/{{ seller.items_checked }}/{{ seller.items_registered }}</td>
+            <td>
+                <a href="{% url 'swapp:my-items' seller.seller.username %}" class="btn btn-primary" type="button">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

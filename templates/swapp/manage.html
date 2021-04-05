@@ -147,7 +147,7 @@
                 reg_progress.setAttribute('aria-valuenow', status.reg_progress_percent);
             }
         }
-        newStatus.open("GET", "{% url 'swapp:refresh-status' %}");
+        newStatus.open("GET", "{% url 'swapp:refresh-status' %}", true);
         newStatus.send();
     }
     refreshItemsAndRegs()
