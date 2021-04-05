@@ -1,4 +1,5 @@
 {% extends 'swapp/base.html' %}
+{% load swapp_template_tags %}
 
 {% block title_block %}
     My Items
@@ -6,46 +7,101 @@
 
 {% block body_block %}
 
-    <h1>My Items</h1>
+    <h1>My Items - {{ user }}</h1>
 
     <div>
-    <form method="GET" id="search" action=".">
+     <form method="GET" id="search" action=".">
         {% csrf_token %}
-        <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." size="30" autofocus/>
-        <input id="search_submit" type="submit" value="Search">
+        <input style="max-width: 500px" class="form-control mb-3" type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." autofocus/>
+
+        <!--
+        <label for="choose-ordering-name">Name</label>
+        <input id="choose-ordering-name" type="radio" name="order" value="name">
+        <label for="choose-ordering-price">Price</label>
+        <input id="choose-ordering-price" type="radio" name="order" value="price">
+        <label for="choose-ordering-date">ID</label>
+        <input id="choose-ordering-date" type="radio" name="order" value="id">
+        -->
+
+        <input class="btn btn-primary mb-3" id="search_submit" type="submit" value="Search">
+        <a class="btn btn-secondary mb-3" id="search_clear" href="?page=1&q=">Clear</a>
     </form>
     </div>
+        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#add-item" data-bs-whatever="New Item">
+              + Add Item
+        </button>
+
+        <!-- Add item Modal -->
+        <div class="modal fade" id="add-item" tabindex="-1" >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title">Add Item</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="item_new_form" action="." method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ new_item_form.as_p }}
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" name="item_new_form" >Add</button>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
     <div id="search-results">
+    {% if not items %}
+        <h5>You have no items at the moment, you can add them using the button above!</h5>
+    {% endif %}
          <ul>
              {% for item in items %}
-                <li>
-                 <h3>{{ item.item.name }}</h3>
-                 {% if item.item.picture %}
-                     <img src="{{ MEDIA_URL }}{{ item.item.picture }}" alt="{{ item.item.picture }}" />
-                 {% endif %}
-                 <p>{{ item.item.desc }}</p>
-                 <em>£{{ item.item.price }}</em><br/>
-                 <span>Available: <i>{{ item.item.available }}</i></span>
-                 </li>
-				 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.item.id }}" data-bs-whatever="{{ item.item.id }}">
-                      Edit
-                    </button>
+                 <div id="item-card-and-modals-{{ item.id }}">
+                 <div class="card mb-3" style="max-width: 540px;">
+                     <div class="row g-0">
+                         {% if item.picture %}
+                         <div class="col-md-4">
+                             <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                         </div>
+                         {% endif %}
+                         <div class="col-md-8">
+                             <div class="card-body">
+                                 <h5 class="card-title">{{ item.name }}</h5>
+                                 <p id="item-desc" class="card-text">{{ item.description }}.</p>
+                                 <em id="item-price" class="card-text">£{{ item.price }}</em><br/>
+                                 <!-- TODO: add bootstrap icons -->
+                                 <span id="checked-in-indicator-{{ item.id }}" class="card-text">Checked-in: <i>{% if item.checked %}YES{% else %}NO{% endif %}</i></span><br/>
+                                 <span id="item-sold" class="card-text">Sold: <i>{% if item.sold %}YES{% else %}NO{% endif %}</i></span><br/>
+                                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.id }}">View</button>
+                                 <button id="edit-item-btn-{{ item.id }}" type="button" class="btn btn-primary {% if item.checked %}disabled{% endif %}" data-bs-toggle="modal" data-bs-target="#edit-item-{{ item.id }}">Edit</button>
+                                 <form id="delete-item-{{ item.id }}" method="post" action="{% url 'swapp:delete-item' %}" style="display: inline;">
+                                     {% csrf_token %}
+                                     <input type="hidden" name="username" value="{{ username }}">
+                                     <input type="hidden" name="item_id" value="{{ item.id }}">
+                                     <input id="delete-item-btn-{{ item.id }}" onclick="deleteItem('{{ item.id }}')" class="btn btn-danger {% if item.checked %}disabled{% endif %}" type="button" value="Delete">
+                                 </form>
+                                 {% if user|is_user_type:"Staff" %}
+                                 <button id="check-in-button-{{ item.id }}" onclick="checkInItem('{{ item.id }}')" type="button" class="btn btn-{% if not item.checked %}outline-{% endif %}warning {% if item.sold %}disabled{% endif %}">Check-in</button>
+                                 {% endif %}
+                             </div>
+                         </div>
+                     </div>
+                 </div>
 
-				<!-- Modal -->
-                <div class="modal fade" id="view-item-{{ item.item.id }}" tabindex="-1" >
+				<!-- Edit Modal -->
+                <div class="modal fade" id="edit-item-{{ item.id }}" tabindex="-1" >
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h1 class="modal-title">Edit Item {{ item.item.id }}</h1>
+                                <h1 class="modal-title">Edit Item #{{ item.id }}</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
 							<form id="item_edit_form" action="." method="post">
 								{% csrf_token %}
-								{{ item.item_form.as_p }}
-								<input type="hidden" name="item_id" value="{{ item.item.id }}">
-								
-						
+								{{ item.edit_form.as_p }}
+								<input type="hidden" name="item_id" value="{{ item.id }}">
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 								<button type="submit" class="btn btn-primary" name="item_edit_form" >Save changes</button>
@@ -54,39 +110,35 @@
                         </div>
                     </div>
                 </div>
-                <hr/>
-				
-             {% endfor %}
-			<br> 	
 
-
-			
-			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-item" data-bs-whatever="New Item">
-                      Add Item
-                    </button>
-					
-				<!-- Modal -->
-                <div class="modal fade" id="add-item" tabindex="-1" >
+                 <!-- View Modal -->
+                <div class="modal fade" id="view-item-{{ item.id }}" tabindex="-1" >
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h1 class="modal-title">Add Item</h1>
+                                <h1 class="modal-title">Item</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-							<form id="item_new_form" action="." method="post" enctype="multipart/form-data">
-								{% csrf_token %}
-								{{ new_item_form.as_p }}
-
+                            <div class="modal-body">
+                                <h4>{{ item.name }}</h4>
+                                <em>item #{{ item.id }}</em><br/>
+                                {% if item.picture %}
+                                    <img id="item-image-modal" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                                {% endif %}
+                                <p>{{ item.description }}</p>
+                                <strong>£{{ item.price }}</strong><br/>
+                            <span id="checked-in-indicator-modal-{{ item.id }}" class="card-text">Checked-in: <i>{% if item.checked %}YES{% else %}NO{% endif %}</i></span><br/>
+                            <span id="item-sold-modal" class="card-text">Sold: <i>{% if item.sold %}YES{% else %}NO{% endif %}</i></span><br/>
+                            </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-								<button type="submit" class="btn btn-primary" name="item_new_form" >Add</button>
                             </div>
-							</form>
                         </div>
                     </div>
                 </div>
-				
-				
+                </div>
+
+             {% endfor %}
                 <hr/>
          </ul>
     </div>
@@ -94,36 +146,93 @@
     <nav>
     <ul class="pagination justify-content-center">
         {% if items.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page=1&q={{ request.GET.q }}">&laquo; first</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}&q={{ request.GET.q }}">previous</a></li>
+            <li class="page-item"><a class="page-link" href="?page=1&q={{ request.q }}&order={{ request.order }}">&laquo; first</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}&q={{ request.q }}&order={{ request.order }}">previous</a></li>
         {% else %}
-            <li class="page-item disabled"><a class="page-link" href="?page=1&q={{ request.GET.q }}">&laquo; first</a></li>
+            <li class="page-item disabled"><a class="page-link" href="?page=1&q={{ request.q }}&order={{ request.order }}">&laquo; first</a></li>
             <li class="page-item disabled"><a class="page-link" href="#">previous</a></li>
         {% endif %}
 
         {% for page_num in items.paginator.page_range %}
             {% if page_num == items.number %}
-                <li class="page-item active"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}">{{ page_num }}</a></li>
+                <li class="page-item active"><a class="page-link" href="?page={{ page_num }}&q={{ request.q }}&order={{ request.order }}">{{ page_num }}</a></li>
             {% else %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_num }}&q={{ request.GET.q }}">{{ page_num }}</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_num }}&q={{ request.q }}&order={{ request.order }}">{{ page_num }}</a></li>
             {% endif %}
         {% endfor %}
 
         {% if items.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}&q={{ request.GET.q }}">next</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}">last &raquo;</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}&q={{ request.q }}&order={{ request.order }}">next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.q }}&order={{ request.order }}">last &raquo;</a></li>
         {% else %}
             <li class="page-item disabled"><a class="page-link" href="#">next</a></li>
-            <li class="page-item disabled"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.GET.q }}">last &raquo;</a></li>
+            <li class="page-item disabled"><a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ request.q }}&order={{ request.order }}">last &raquo;</a></li>
         {% endif %}
     </ul>
     </nav>
 
     <script type="application/javascript">
-    function openItemView(item) {
-        const itemModal = new bootstrap.Modal(document.getElementById('view-item-' + item.id));
-        itemModal.toggle()
+
+    // The getCookie function was provided in the official django documentation on CSRF tokens
+    // (https://docs.djangoproject.com/en/2.2/ref/csrf/)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function deleteItem(item_id) {
+        if (confirm('You are about to permanently remove this item. Are you sure?')) {
+            document.getElementById("delete-item-"+item_id).submit()
+        } else {
+            console.log("delete aborted!")
+        }
+    }
+
+    function checkInItem(item_id) {
+        let checked_in_indicator = document.getElementById('checked-in-indicator-'+item_id);
+        let checked_in_indicator_modal = document.getElementById('checked-in-indicator-modal-'+item_id);
+        let checked_in_button = document.getElementById('check-in-button-'+item_id);
+        let delete_item_button = document.getElementById('delete-item-btn-'+item_id);
+        let edit_item_button = document.getElementById('edit-item-btn-'+item_id);
+
+        let checkIn = new XMLHttpRequest();
+        checkIn.onreadystatechange = function () {
+            if (checkIn.readyState === 4 && checkIn.status === 200) {
+                let response = JSON.parse(checkIn.response);
+                if (response.checked_in) {
+                    checked_in_indicator.innerHTML = "Checked-in: YES";
+                    checked_in_indicator_modal.innerHTML = "Checked-in: YES";
+                    checked_in_button.classList.remove('btn-outline-warning');
+                    checked_in_button.classList.add('btn-warning');
+                    delete_item_button.classList.add('disabled')
+                    edit_item_button.classList.add('disabled')
+                } else {
+                    checked_in_indicator.innerHTML = "Checked-in: NO";
+                    checked_in_indicator_modal.innerHTML = "Checked-in: NO";
+                    checked_in_button.classList.add('btn-outline-warning');
+                    checked_in_button.classList.remove('btn-warning');
+                    delete_item_button.classList.remove('disabled')
+                    edit_item_button.classList.remove('disabled')
+                }
+            }
+         }
+        let csrftoken = getCookie('csrftoken');
+        checkIn.open("POST", "{% url 'swapp:check-in' %}", true);
+        checkIn.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        checkIn.setRequestHeader("X-CSRFToken", csrftoken);
+        checkIn.send("item_id="+item_id);
     }
     </script>
-	
+
 {% endblock %}

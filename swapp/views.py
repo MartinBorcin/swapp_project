@@ -111,48 +111,85 @@ def items(request):
     return render(request, 'swapp/items.html', context={"search_query": query, "items": items_on_page})
 
 
-def my_items(request,username):
-    user=get_object_or_404(User, username=username)
+def my_items(request, username):
+    user = get_object_or_404(User, username=username)
 
-    query = request.GET.get('q', '')
-    #filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
-
-    #if django_user.groups.filter(name = Seller).exists():
-    user_items = Item.objects.filter(seller=user)
-
-    filtered_items = user_items.filter(Q(name__icontains = query) | Q(description__icontains = query))
-    paginator = Paginator(filtered_items, 2)
-    page = request.GET.get('page', 1)
-    items_on_page = paginator.get_page(page)
-    items = list()
-    for item in items_on_page:
-        item_form = ItemForm(instance = item, prefix = "item_edit_form")
-        items.append({"item":item, "item_form":item_form})
-
-    new_item_form = ItemForm(prefix = "item_new_form")
-
+    if request.method == "GET":
+        request.q = request.GET.get('q', '')
+        request.order = request.GET.get('order', 'name')
+        request.page = request.GET.get('page', 1)
 
     if request.method == "POST":
-        print(request.POST)
+        request.q = request.POST.get("q", "")
+        request.order = request.POST.get('order', 'name')
+        request.page = request.GET.get('page', 1)
+
         if "item_edit_form" in request.POST:
-            item_form = ItemForm(request.POST, prefix='item_edit_form', instance = item)
-            if item_form.is_valid:
+            item_id = request.POST.get('item_id')
+            item = Item.objects.get(id=item_id)
+            item_form = ItemForm(request.POST, prefix='item_edit_form', instance=item)
+            if item_form.is_valid():
                 item_form.save()
 
         if "item_new_form" in request.POST:
             new_item_form = ItemForm(request.POST, request.FILES, prefix="item_new_form")
-            if new_item_form.is_valid:
+            if new_item_form.is_valid():
                 new_item = new_item_form.save(commit=False)
                 new_item.seller = user
-                if "item_new_form_picture" in request.FILES:
-                    new_item.picture = request.FILES["item_new_form_picture"]
+                # if "item_new_form_picture" in request.FILES:
+                #     new_item.picture = request.FILES["item_new_form_picture"]
                 new_item.save()
 
+    user_items = Item.objects.filter(seller=user)
+    filtered_items = user_items.filter(Q(name__icontains=request.q) | Q(description__icontains=request.q)).order_by(request.order)
+    paginator = Paginator(filtered_items, 2)
+    request.page = min((int(request.page), paginator.num_pages))
+    items_on_page = paginator.get_page(request.page)
 
-    return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items, "new_item_form": new_item_form})
+    for item in items_on_page:
+        item.edit_form = ItemForm(instance=item, prefix="item_edit_form")
+
+    new_item_form = ItemForm(prefix="item_new_form")
+
+    return render(request, 'swapp/my-items.html', context={"items": items_on_page, "new_item_form": new_item_form, "username":username})
+
+
+def check_in(request):
+    if request.method == "POST":
+        item_id = request.POST.get("item_id")
+        item = Item.objects.get(id=item_id)
+        item.checked = not item.checked
+        item.save()
+        return JsonResponse({"checked_in": item.checked})
+
+
+def delete_item(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        item_id = request.POST.get("item_id")
+        item = Item.objects.get(id=item_id)
+        item.delete()
+        return redirect('swapp:my-items', username=username)
+
 
 def sellers(request):
-    pass
+    query = ""
+    if request.method == "GET":
+        query = request.GET.get("q", "")
+    all_sellers = []
+    for seller in User.objects.filter(
+            Q(groups__name__contains='Seller') & (Q(first_name__icontains=query) | Q(id__icontains=query) | Q(last_name__icontains=query) | Q(username__icontains=query))).all():
+        seller_items = Item.objects.filter(seller=seller)
+        items_registered = seller_items.count()
+        items_checked = seller_items.filter(checked=True).count()
+        items_sold = seller_items.filter(sold=True).count()
+        all_sellers.append({
+            "seller": seller,
+            "items_registered": items_registered,
+            "items_checked": items_checked,
+            'items_sold': items_sold
+        })
+    return render(request, 'swapp/sellers.html', context={"sellers": all_sellers})
 
 
 def about(request):

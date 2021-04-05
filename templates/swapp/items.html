@@ -58,42 +58,29 @@
                      </div>
                  </div>
 
-{#                 <li onclick="openItemView('{{ item.id }}')">#}
-{#                 <h3 id="item-name">{{ item.name }}</h3>#}
-{#                 {% if item.picture %}#}
-{#                     <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />#}
-{#                 {% endif %}#}
-{#                 <p id="item-desc">{{ item.description }}</p>#}
-{#                 <em id="item-price">£{{ item.price }}</em><br/>#}
-{#                 <span id="item-avail">Available: <i>{% if item.checked and not item.sold %}YES{% else %}NO{% endif %}</i></span>#}
-{#                 </li>#}
-{#                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#view-item-{{ item.id }}">#}
-{#                      View#}
-{#                    </button>#}
-
-                    <!-- Modal -->
-                    <div class="modal fade" id="view-item-{{ item.id }}" tabindex="-1" >
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title">Item</h1>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <h4>{{ item.name }}</h4>
-                                    <em>item #{{ item.id }}</em><br/>
-                                    {% if item.picture %}
-                                        <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
-                                    {% endif %}
-                                    <p>{{ item.desc }}</p>
-                                    <strong>£{{ item.price }}</strong>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                </div>
+                <!-- Modal -->
+                <div class="modal fade" id="view-item-{{ item.id }}" tabindex="-1" >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title">Item</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h4>{{ item.name }}</h4>
+                                <em>item #{{ item.id }}</em><br/>
+                                {% if item.picture %}
+                                    <img id="item-image-modal" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                                {% endif %}
+                                <p>{{ item.description }}</p>
+                                <strong>£{{ item.price }}</strong>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
+                </div>
              {% endfor %}
          </ul>
     </div>
