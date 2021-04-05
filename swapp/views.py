@@ -1,15 +1,16 @@
-from datetime import datetime, timedelta, timezone
-
+from datetime import datetime, timezone
+from decimal import Decimal
+from django.http import JsonResponse
+from django.utils import timezone as tz
 from django.contrib.auth.models import Group, User
 from django.db.models import Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
 
 from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, RegistrationEndTimeForm, \
     EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm, ItemForm
-from swapp.models import Item, Event, Announcement
+from swapp.models import Item, Event, Announcement, Checkout
 from django.contrib.auth import logout, login, authenticate
 
 # Create your views here.
@@ -98,20 +99,12 @@ def register(request):
 
 
 def items(request):
-    all_items = [
-        {"id": 1, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        {"id": 2, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        {"id": 3, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-        {"id": 4, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        {"id": 5, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        {"id": 6, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-        {"id": 7, "name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": 4, "available": "V (icon)"},
-        {"id": 8, "name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": 3, "available": "X (icon)"},
-        {"id": 9, "name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": 10, "available": "? (icon)"},
-    ]
-
+    # TODO: display number of results
     query = request.GET.get('q', '')
-    filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
+    ordering = request.GET.get('order', 'name')
+    if not ordering:
+        ordering = 'name'
+    filtered_items = Item.objects.filter(Q(name__icontains=query) | Q(description__icontains=query)).order_by(ordering)
     paginator = Paginator(filtered_items, 2)
     page = request.GET.get('page', 1)
     items_on_page = paginator.get_page(page)
@@ -123,10 +116,10 @@ def my_items(request,username):
 
     query = request.GET.get('q', '')
     #filtered_items = list(filter(lambda item: query.lower() in " ".join([item['desc'], item['name']]).lower(), all_items))
-    
+
     #if django_user.groups.filter(name = Seller).exists():
     user_items = Item.objects.filter(seller=user)
-        
+
     filtered_items = user_items.filter(Q(name__icontains = query) | Q(description__icontains = query))
     paginator = Paginator(filtered_items, 2)
     page = request.GET.get('page', 1)
@@ -135,17 +128,17 @@ def my_items(request,username):
     for item in items_on_page:
         item_form = ItemForm(instance = item, prefix = "item_edit_form")
         items.append({"item":item, "item_form":item_form})
-        
+
     new_item_form = ItemForm(prefix = "item_new_form")
-    
-    
+
+
     if request.method == "POST":
         print(request.POST)
         if "item_edit_form" in request.POST:
             item_form = ItemForm(request.POST, prefix='item_edit_form', instance = item)
             if item_form.is_valid:
                 item_form.save()
-                
+
         if "item_new_form" in request.POST:
             new_item_form = ItemForm(request.POST, request.FILES, prefix="item_new_form")
             if new_item_form.is_valid:
@@ -154,8 +147,8 @@ def my_items(request,username):
                 if "item_new_form_picture" in request.FILES:
                     new_item.picture = request.FILES["item_new_form_picture"]
                 new_item.save()
-            
-    
+
+
     return render(request, 'swapp/my-items.html', context={"search_query": query, "items": items, "new_item_form": new_item_form})
 
 def sellers(request):
@@ -173,36 +166,40 @@ def about(request):
     return render(request, 'swapp/about.html', context={"event": event})
 
 
-def manage(request):
+def get_items_sold():
     approved_items = Item.objects.filter(checked=True)
     sold_items = Item.objects.filter(sold=True)
     money_collected = sold_items.aggregate(Sum("price"))["price__sum"]
     if not money_collected:
         money_collected = 0.0
-    money_earned = round(money_collected * 0.25, 2)
+    money_earned = round(float(money_collected) * 0.25, 2)
     try:
-        items_progress_percent = sold_items.count()*100/approved_items.count()
+        items_progress_percent = sold_items.count() * 100 / approved_items.count()
     except ZeroDivisionError:
         print('no approved items')
         items_progress_percent = 0
+    return approved_items, sold_items, money_collected, money_earned, items_progress_percent
 
-    event = Event.objects.get(id=1)
-    event_duration = max(event.end_time - event.start_time, timedelta(seconds=1))  # avoid ZeroDivisionError
-    remaining_time = max(event.end_time - datetime.now(timezone.utc), timedelta(seconds=0))
-    remaining_time -= timedelta(microseconds=remaining_time.microseconds)
-    event_progress_percent = 100 - min(remaining_time.seconds*100/event_duration.seconds, 100)
-    status = {
+
+def refresh_status(request):
+    approved_items, sold_items, money_collected, money_earned, items_progress_percent = get_items_sold()
+    reg_count = User.objects.filter(groups__name__contains='Seller').count()
+    reg_cap = Event.objects.get(id=1).seller_cap
+    reg_progress_percent = reg_count * 100 / reg_cap
+    return JsonResponse({
+        "reg_count": reg_count,
+        "reg_cap": reg_cap,
+        "reg_progress_percent": reg_progress_percent,
         "approved_items_count": approved_items.count(),
         "sold_items_count": sold_items.count(),
-        "remaining_time": remaining_time,
-        "time_progress": event_progress_percent,
         "money_collected": money_collected,
         "money_earned": money_earned,
-        "items_progress": items_progress_percent,
-    }
+        "items_progress_percent": items_progress_percent
+    })
 
-    # registered_sellers_count = User.objects.filter(groups__in="Seller").count()
 
+def manage(request):
+    event = Event.objects.get(id=1)
     announcement_form = AnnouncementForm(prefix='ann-form')
     registration_start_form = RegistrationStartTimeForm(prefix='reg-start-time-form', instance=event)
     registration_end_form = RegistrationEndTimeForm(prefix='reg-end-time-form', instance=event)
@@ -230,7 +227,6 @@ def manage(request):
             registration_start_form = RegistrationStartTimeForm(request.POST, prefix='reg-start-time-form', instance=event)
             if registration_start_form.is_valid():
                 registration_start_form.save()
-                print("reg start_time: ", event.registration_start_time)
                 return redirect(reverse("swapp:manage"))
 
         if 'reg-end-time-form' in request.POST:
@@ -290,7 +286,10 @@ def manage(request):
             return redirect(reverse("swapp:manage"))
 
     return render(request, "swapp/manage.html", context={
-        "status": status,
+        "event_end_timestamp": event.end_time.timestamp() * 1000,
+        "event_start_timestamp": event.start_time.timestamp() * 1000,
+        "reg_end_timestamp": event.registration_end_time.timestamp() * 1000,
+        "reg_start_timestamp": event.registration_start_time.timestamp() * 1000,
         "announcement_form": announcement_form,
         "registration_start_form": registration_start_form,
         "registration_end_form": registration_end_form,
@@ -300,4 +299,113 @@ def manage(request):
         "event_loc_form": event_loc_form,
         "event_desc_form": event_desc_form,
         "event": event,
+    })
+
+
+def select_checkout(request):
+    active_sessions = Checkout.objects.filter(completed=False)
+    completed_sessions = Checkout.objects.filter(completed=True)
+    return render(request, "swapp/select_checkout.html", context={
+        "active_sessions": active_sessions,
+        "completed_sessions": completed_sessions,
+        "different_user_alert": "This checkout session was started by a different user. Are you sure you want to proceed?"
+    })
+
+
+def new_checkout(request):
+    check = Checkout.objects.create(sold_by=request.user, timestamp=tz.now())
+    return redirect("swapp:checkout", checkout_id=check.id)
+
+
+def checkout(request, checkout_id):
+    check = Checkout.objects.get(id=checkout_id)
+    checkout_items = Item.objects.filter(sold_in=check)
+    total_count = checkout_items.count()
+
+    item_id = None
+    item_error = None
+    paid_error = None
+    if request.method == 'POST':
+        if 'item-id-form' in request.POST:
+            item_id = request.POST.get("item_id")
+            if item_id:
+                # verify if the item id is valid, e.g. if item is not already sold or in checkout or approved
+                item = Item.objects.filter(id=item_id)
+                if not item.exists():
+                    item_error = f"Item #{item_id} does not exist."
+                else:
+                    item = item.get(id=item_id)
+                    if not item.checked:
+                        item_error = f"Item #{item_id} is not checked-in"
+                    elif item.sold:
+                        item_error = f"Item #{item_id} is already sold"
+                    elif item.sold_in:
+                        item_error = f"Item #{item_id} was already checked out in checkout #{item.sold_in.id}"
+                    else:
+                        item.sold_in = check
+                        item.save()
+                        check.total += item.price
+                        check.change = round(check.paid - check.total, 2)
+                        check.save()
+                        return redirect('swapp:checkout', checkout_id=checkout_id)
+
+        if 'paid-form' in request.POST:
+            paid = request.POST.get("paid")
+            if not paid:
+                paid_error = "Please, provide an amount."
+            else:
+                try:
+                    check.paid = Decimal(paid)
+                    check.change = round(check.paid - check.total, 2)
+                    check.save()
+                    return redirect('swapp:checkout', checkout_id)
+                except ValueError:
+                    paid_error = "Please, provide a valid amount."
+
+        if 'checkout-done' in request.POST:
+            action = request.POST.get('checkout-done')
+
+            if action == 'Confirm Payment':
+                for item in checkout_items:
+                    item.sold = True
+                    item.save()
+                check.completed = True
+                check.save()
+                return redirect('swapp:checkout', checkout_id)
+
+            elif action == 'Cancel':
+                for item in checkout_items:
+                    item.sold_in = None
+                    item.save()
+                check.delete()
+                return redirect('swapp:select-checkout')
+
+        if 'remove-item' in request.POST:
+            item_id = request.POST.get('item-id')
+            item = checkout_items.get(id=item_id)
+            item.sold_in = None
+            item.save()
+            check.total -= item.price
+            check.change = round(check.paid - check.total, 2)
+            check.save()
+            return redirect('swapp:checkout', checkout_id)
+
+    return render(request, "swapp/checkout.html", context={
+        "checkout": check,
+        "checkout_items": checkout_items,
+        "item_id": item_id,
+        "item_error": item_error,
+        "total_count": total_count,
+        "paid_error": paid_error,
+        "cancel_warning": 'You are about to cancel this checkout, all the data will be lost. Are you sure?',
+    })
+
+
+def checkout_export(request, checkout_id):
+    check = Checkout.objects.get(id=checkout_id)
+    checkout_items = Item.objects.filter(sold_in=check)
+    return render(request, "swapp/checkout_export.html", context={
+        "checkout": check,
+        "checkout_items": checkout_items,
+        "total_count": checkout_items.count(),
     })
