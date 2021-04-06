@@ -20,4 +20,5 @@ urlpatterns = [
     path('checkout/<checkout_id>/', views.checkout, name='checkout'),
     path('checkout/<checkout_id>/export/', views.checkout_export, name='checkout-export'),
     path('manage/refresh-status/', views.refresh_status, name='refresh-status'),
+    path("update_server/", views.update, name="update"),
 ]

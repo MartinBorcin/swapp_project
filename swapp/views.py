@@ -1,6 +1,7 @@
+import git
 from datetime import datetime, timezone
 from decimal import Decimal
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone as tz
 from django.contrib.auth.models import Group, User
 from django.db.models import Sum, Q
@@ -8,10 +9,30 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.urls import reverse
 from random import sample
+from django.views.decorators.csrf import csrf_exempt
+
 from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, RegistrationEndTimeForm, \
     EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm, ItemForm
 from swapp.models import Item, Event, Announcement, Checkout
 from django.contrib.auth import logout, login, authenticate
+
+@csrf_exempt
+def update(request):
+    if request.method == "POST":
+        '''
+        pass the path of the diectory where your project will be 
+        stored on PythonAnywhere in the git.Repo() as parameter.
+        Here the name of my directory is "test.pythonanywhere.com"
+        '''
+        repo = git.Repo("https://github.com/MartinBorcin/swapp_project")
+        origin = repo.remotes.origin
+
+        origin.pull()
+
+        return HttpResponse("Updated code on PythonAnywhere")
+    else:
+        return HttpResponse("Couldn't update the code on PythonAnywhere")
+
 
 # Create your views here.
 
@@ -374,7 +395,6 @@ def checkout(request, checkout_id):
                     paid_error = "Please, provide a valid amount."
 
         if 'checkout-done' in request.POST:
-            print(request.POST)
             action = request.POST.get('checkout-done')
 
             if action == 'Confirm Payment':
