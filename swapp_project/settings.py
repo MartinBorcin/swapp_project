@@ -28,7 +28,7 @@ SECRET_KEY = 'alw*a*=14le-i-(d#)%@f(xy+x3yqb%#c_wo0d8i)0kl*=e08g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['swappproject.pythonanywhere.com']
+ALLOWED_HOSTS = ['swappproject.pythonanywhere.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
