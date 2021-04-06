@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -13,14 +16,15 @@ from django.utils import timezone
 
 
 class Checkout(models.Model):
+    MAX_DIGITS = 15
     # foreign key
     sold_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # django "id" - automatically assigned - no need for them in models
     timestamp = models.DateTimeField()
-    total = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    paid = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    change = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    total = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=2, default=0.00)
+    paid = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=2, default=0.00)
+    change = models.DecimalField(max_digits=MAX_DIGITS, decimal_places=2, default=0.00)
     completed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -36,12 +40,16 @@ class Item(models.Model):
     sold_in = models.ForeignKey(Checkout, on_delete=models.CASCADE, null=True, blank=True)
 
     NAME_MAX_LENGTH = 50
+    PRICE_MAX_DIGITS = 10  # 8+2 decimal_spaces
+    MAX_PRICE = 99_999_999.99  # for forms - 10 digits maximum number
     DESCRIPTION_MAX_LENGTH = 250
     name = models.CharField(max_length=NAME_MAX_LENGTH)
     # django "id" - automatically assigned - no need for them in models
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    # validators to ensure non negative prices of items
+    price = models.DecimalField(max_digits=PRICE_MAX_DIGITS, decimal_places=2, default=0.00,
+                                validators=[MinValueValidator(Decimal('0.00'))])
     description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH, blank=True)
-    # defaults to False
+    # default False
     sold = models.BooleanField(default=False)
     checked = models.BooleanField(default=False)
     picture = models.ImageField(upload_to='item_pictures', blank=True)
