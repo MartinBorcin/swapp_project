@@ -62,7 +62,7 @@ function refreshItemsAndRegs(refreshUrl) {
     newStatus.onreadystatechange = function () {
         if (newStatus.readyState === 4 && newStatus.status === 200) {
             let status = JSON.parse(newStatus.response);
-            items_counter.innerHTML = "Sold " + status.sold_items_count + "/" + status.approved_items_count + " items so far, for a total of £" + status.money_collected.toFixed(2) + " (£" + status.money_earned.toFixed(2) + " for you)";
+            items_counter.innerHTML = "Sold " + status.sold_items_count + "/" + status.approved_items_count + " items so far, for a total of £" + parseFloat(status.money_collected).toFixed(2) + " (£" + parseFloat(status.money_earned).toFixed(2) + " for you)";
             items_progress.style.width = status.items_progress_percent + "%";
             items_progress.setAttribute('aria-valuenow', status.items_progress_percent.toString())
 
