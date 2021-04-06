@@ -16,6 +16,7 @@ from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, R
 from swapp.models import Item, Event, Announcement, Checkout
 from django.contrib.auth import logout, login, authenticate
 
+
 @csrf_exempt
 def update(request):
     if request.method == "POST":
@@ -24,7 +25,7 @@ def update(request):
         stored on PythonAnywhere in the git.Repo() as parameter.
         Here the name of my directory is "test.pythonanywhere.com"
         '''
-        repo = git.Repo("https://github.com/MartinBorcin/swapp_project")
+        repo = git.Repo("/home/swappproject/swapp_project")
         origin = repo.remotes.origin
 
         origin.pull()
