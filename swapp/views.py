@@ -1,6 +1,8 @@
 import git
 from datetime import datetime, timezone
 from decimal import Decimal
+
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone as tz
 from django.contrib.auth.models import Group, User
@@ -109,6 +111,7 @@ def items(request):
     })
 
 
+@login_required
 def my_items(request, username):
     user = get_object_or_404(User, username=username)
 
@@ -171,6 +174,7 @@ def delete_item(request):
         return redirect('swapp:my-items', username=username)
 
 
+@login_required
 def sellers(request):
     query = ""
     if request.method == "GET":
@@ -228,6 +232,7 @@ def refresh_status(request):
     })
 
 
+@login_required
 def manage(request):
     event = Event.objects.get(id=1)
     announcement_form = AnnouncementForm(prefix='ann-form')
@@ -332,6 +337,7 @@ def manage(request):
     })
 
 
+@login_required
 def select_checkout(request):
     active_sessions = Checkout.objects.filter(completed=False)
     completed_sessions = Checkout.objects.filter(completed=True)
@@ -342,11 +348,13 @@ def select_checkout(request):
     })
 
 
+@login_required
 def new_checkout(request):
     check = Checkout.objects.create(sold_by=request.user, timestamp=tz.now())
     return redirect("swapp:checkout", checkout_id=check.id)
 
 
+@login_required
 def checkout(request, checkout_id):
     check = Checkout.objects.get(id=checkout_id)
     checkout_items = Item.objects.filter(sold_in=check)
@@ -434,6 +442,7 @@ def checkout(request, checkout_id):
     })
 
 
+@login_required
 def checkout_export(request, checkout_id):
     check = Checkout.objects.get(id=checkout_id)
     checkout_items = Item.objects.filter(sold_in=check)
