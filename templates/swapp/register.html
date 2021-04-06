@@ -1,21 +1,42 @@
 {% extends 'swapp/base.html' %}
+{% load widget_tweaks %}
 
 {% block title_block %}
     Register
 {% endblock %}
 
 {% block body_block %}
-    <h1>Registration</h1>
+    <h1 class="mb-5">Registration</h1>
     {% if registered or user.is_authenticated %}
         <h2>Thank you for registering, {{ user.username }}.</h2>
     {% else %}
         <h2>New Seller</h2>
-        <div>
-        <form class="mt-5" id="reg_form" action="." method="post" >
+        <form style="max-width: 35%;" class="mt-3" id="reg_form" action="." method="post">
             {% csrf_token %}
-            {{ user_form.as_p }}
+            {% for field in user_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if user_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
             <input class="btn btn-primary" type="submit" name="submit" value="Register" />
         </form>
-        </div>
     {% endif %}
 {% endblock %}

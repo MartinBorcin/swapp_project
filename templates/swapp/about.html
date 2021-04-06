@@ -3,21 +3,21 @@
     About
 {% endblock %}
 {% block body_block %}
-    <h1>About</h1>
-    <div>
+    <h1 class="mb-5">About</h1>
+    <div class="mb-4">
         <h2>How to sell?</h2>
         <p>If you would like to sell items that you no longer need and would like to pass on to someone else for a small chnage, it is necessary to <a href="{% url 'swapp:login' %}">Log In</a> or <a href="{% url 'swapp:register' %}">Register</a>. The registration is completely free, however, there might me a limited number of sellers per event, so you have to do it as soon as possible after the registration starts.</p>
-        <p><strong>Registration start: </strong>{{ event.reg_start_time }}</p>
-        <p><strong>Registration end: </strong>{{ event.reg_end_time }}</p>
-        <p><strong>Registration cap: </strong>{{ event.sellers_cap }} sellers</p>
+        <p><strong>Registration start: </strong>{{ event.registration_start_time }}</p>
+        <p><strong>Registration end: </strong>{{ event.registration_end_time }}</p>
+        <p><strong>Registration cap: </strong>{{ event.seller_cap }} sellers</p>
     </div>
-    <div>
+    <div class="mb-4">
         <h2>How to buy?</h2>
         <p>To buy any of the Items, no registration is required, the Event is open to public. Keep in mind that the <a href="{% url 'swapp:items' %}">list of all Items</a> is subject to change at the start of the Event, as some items might arrive in poor quiality or not arrive at all. These items will be subsequently removed or marked as unavailable.</p>
         <p><strong>Event start: </strong>{{ event.start_time }}</p>
         <p><strong>Event end: </strong>{{ event.end_time }}</p>
     </div>
-    <div>
+    <div class="mb-4">
         <h2>How to reach us?</h2>
         <p>To reach us, we prefer if you write us an email, we typically respond in 24 hours. Alternatively, you can give us a call, however, use this as an emergency measure, as we do not have any call centre or customer support (we are only regular, busy, working humans - just like you!)</p>
         <p><strong>Email: </strong>email@organization.org</p>

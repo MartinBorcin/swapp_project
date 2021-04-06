@@ -7,7 +7,7 @@ from django.db.models import Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.urls import reverse
-
+from random import sample
 from swapp.forms import UserForm, AnnouncementForm, RegistrationStartTimeForm, RegistrationEndTimeForm, \
     EventStartTimeForm, EventEndTimeForm, RegistrationCapForm, EventLocationForm, EventDescriptionForm, ItemForm
 from swapp.models import Item, Event, Announcement, Checkout
@@ -17,33 +17,10 @@ from django.contrib.auth import logout, login, authenticate
 
 
 def index(request):
-    # this will be replaced by database queries once models are created. For now, these are the placeholders
-    announce = [
-        {
-            "title": "Lost and found",
-            "image": 'headphones.jpeg',
-            "posted_by": "staffMember1",
-            "posted_at": "30 minutes ago",
-            "text": "This is to remind everyone that during the entire course of event, there is a lost and found box in the staff room, so if you find anything that looks like someone might have lost it, please, do no hesitate to inform any memeber of staff. There is already a pair of headphones and a hat that have been brought. If you happened to lost them, feel free to come collect them as soon as possible.",
-        },
-        {
-            "title": "Hello and welcome!",
-            "image": None,
-            "posted_by": "staffMember1",
-            "posted_at": "30 minutes ago",
-            "text": "Hi everyone, the event is starting in a few hours, and we are very excited to see you all again for the first time since last year! Our operation had to be temporarily suspended because of the pandemic, but now we are back on track!",
-        }
-    ]
-    featured_items = [
-        {"name": "T-shirt, grey", "image": "1.jpg", "desc": "Grey T-shirt with a picture/sign on the front; size 45", "price": "4"},
-        {"name": "T-shirt, green", "image": "2.jpg", "desc": "Plain green Tshirt;size M", "price": "3"},
-        {"name": "Baby shoes", "image": "3.jpg", "desc": "Baby shoes, never worn; size 16", "price": "10"}
-    ]
-    event_location = "Somestreet 25, 12345ZZ, Sometown, Somecountry"
-    event_time = "22.01.2070 08:00 - 22.01.2070 12:00"
-
     announce = Announcement.objects.all()
     event = Event.objects.get(id=1)
+    id_selection = sample([item.id for item in Item.objects.all()], 3)
+    featured_items = Item.objects.filter(id__in=id_selection)
     context_dict = {
         "announcements": announce,
         "featured_items": featured_items,
@@ -63,12 +40,12 @@ def user_login(request):
                 login(request, user)
                 return redirect(reverse('swapp:index'))
             else:
-                return render(request, 'swapp/login.html', context={"message": "Your SwApp account is disabled."})
+                return render(request, 'swapp/login.html', context={"error": "Your SwApp account is disabled."})
         else:
             print(f"Invalid login details: {username}, {password}")
-            return render(request, 'swapp/login.html', context={"message": "Invalid login details supplied."})
+            return render(request, 'swapp/login.html', context={"error": "Invalid login details supplied."})
     else:
-        return render(request, 'swapp/login.html', context={"message": None})
+        return render(request, 'swapp/login.html', context={"error": None})
 
 
 def user_logout(request):
@@ -193,13 +170,7 @@ def sellers(request):
 
 
 def about(request):
-    event = {
-        "reg_start_time": "15.01.2070 08:00",
-        "reg_end_time": "21.01.2070 08:00",
-        "sellers_cap": 200,
-        "start_time": "22.01.2070 08:00 ",
-        "end_time": "22.01.2070 12:00",
-    }
+    event = Event.objects.get(id=1)
     return render(request, 'swapp/about.html', context={"event": event})
 
 
@@ -366,25 +337,28 @@ def checkout(request, checkout_id):
         if 'item-id-form' in request.POST:
             item_id = request.POST.get("item_id")
             if item_id:
-                # verify if the item id is valid, e.g. if item is not already sold or in checkout or approved
-                item = Item.objects.filter(id=item_id)
-                if not item.exists():
-                    item_error = f"Item #{item_id} does not exist."
-                else:
-                    item = item.get(id=item_id)
-                    if not item.checked:
-                        item_error = f"Item #{item_id} is not checked-in"
-                    elif item.sold:
-                        item_error = f"Item #{item_id} is already sold"
-                    elif item.sold_in:
-                        item_error = f"Item #{item_id} was already checked out in checkout #{item.sold_in.id}"
+                try:
+                    # verify if the item id is valid, e.g. if item is not already sold or in checkout or approved
+                    item = Item.objects.filter(id=int(item_id))
+                    if not item.exists():
+                        item_error = f"Item #{item_id} does not exist."
                     else:
-                        item.sold_in = check
-                        item.save()
-                        check.total += item.price
-                        check.change = round(check.paid - check.total, 2)
-                        check.save()
-                        return redirect('swapp:checkout', checkout_id=checkout_id)
+                        item = item.get(id=item_id)
+                        if not item.checked:
+                            item_error = f"Item #{item_id} is not checked-in"
+                        elif item.sold:
+                            item_error = f"Item #{item_id} is already sold"
+                        elif item.sold_in:
+                            item_error = f"Item #{item_id} was already checked out in checkout #{item.sold_in.id}"
+                        else:
+                            item.sold_in = check
+                            item.save()
+                            check.total += item.price
+                            check.change = round(check.paid - check.total, 2)
+                            check.save()
+                            return redirect('swapp:checkout', checkout_id=checkout_id)
+                except ValueError:
+                    item_error = "ID must be a valid integer"
 
         if 'paid-form' in request.POST:
             paid = request.POST.get("paid")
@@ -400,6 +374,7 @@ def checkout(request, checkout_id):
                     paid_error = "Please, provide a valid amount."
 
         if 'checkout-done' in request.POST:
+            print(request.POST)
             action = request.POST.get('checkout-done')
 
             if action == 'Confirm Payment':
@@ -434,7 +409,7 @@ def checkout(request, checkout_id):
         "item_error": item_error,
         "total_count": total_count,
         "paid_error": paid_error,
-        "cancel_warning": 'You are about to cancel this checkout, all the data will be lost. Are you sure?',
+        "confirm_cancel": 'You are about to cancel this checkout, all the data will be lost. Are you sure?',
     })
 
 

@@ -1,21 +1,26 @@
 {% extends 'swapp/base.html' %}
+{% load staticfiles %}
 
 {% block title_block %}
     Checkout #{{ checkout.id }}
 {% endblock %}
 
 {% block body_block %}
-    <h1>Checkout #{{ checkout.id }}</h1>
+    <h1 class="mb-5" >Checkout #{{ checkout.id }}</h1>
     {% if not checkout.completed %}
         <h2>Add Item:</h2>
-        <form method="post" action="{% url 'swapp:checkout' checkout.id %}">
+        <form class="mb-5" method="post" action="{% url 'swapp:checkout' checkout.id %}">
+        <div class="form-group mb-2">
             {% csrf_token %}
+            <label for="item-id" class="form-label">ID: </label>
             {% if item_error %}
-                <p class="errors">{{ item_error }}</p>
+                <p class="text-danger">{{ item_error }}</p>
+                <input style="max-width: 300px" class="form-control is-invalid" id="item-id" name="item_id" type="text" value="{{ previous_item_id }}" placeholder="Enter Item ID...">
+            {% else %}
+                <input style="max-width: 300px" class="form-control" id="item-id" name="item_id" type="text" value="{{ previous_item_id }}" placeholder="Enter Item ID...">
             {% endif %}
-            <label for="item-id">ID: </label>
-            <input id="item-id" name="item_id" type="text" value="{{ previous_item_id }}" placeholder="Enter Item ID...">
-            <input name="item-id-form" type="submit" value="+ Add">
+        </div>
+            <input class="btn btn-primary" name="item-id-form" type="submit" value="+ Add">
         </form>
     {% else %}
         <h2>Checkout completed successfully!</h2>
@@ -27,7 +32,7 @@
             <th scope="col">#</th>
             <th scope="col">Name</th>
             <th scope="col">ID</th>
-            <th scope="col">Price</th>
+            <th style="text-align: right" scope="col">Price</th>
             {% if not checkout.completed %}
             <th scope="col">Action</th>
             {% endif %}
@@ -61,24 +66,28 @@
         </tr>
         </tfoot>
     </table>
-    <div id="price-summary">
-    <p>Total: {{ checkout.total|floatformat:2 }}</p>
-    <p>Paid: {{ checkout.paid|floatformat:2 }}</p>
-    <p>Change: {{ checkout.change|floatformat:2 }}</p>
+    <div style="max-width: 300px" class="mb-3" id="price-summary">
+    <ul class="list-group">
+    <li class="list-group-item">Total: {{ checkout.total|floatformat:2 }}</li>
+    <li class="list-group-item">Paid: {{ checkout.paid|floatformat:2 }}</li>
+    <li class="list-group-item {% if checkout.change < 0 %}list-group-item-warning{% else %}list-group-item-success{% endif %}">Change: {{ checkout.change|floatformat:2 }}</li>
+    </ul>
     </div>
     {% if not checkout.completed %}
-    <form action="{% url 'swapp:checkout' checkout.id %}" method="post">
+    <form class="mb-3" action="{% url 'swapp:checkout' checkout.id %}" method="post">
         {% csrf_token %}
-        <label for="paid">Customer paid:</label>
-        <input id="paid" type="text" name="paid" placeholder="0.00" value="{{ checkout.paid|floatformat:2 }}">
-        <input type="submit" name="paid-form" value="$ Paid">
+        <div class="form-group mb-2">
+        <label class="form-label" for="paid">Customer paid:</label>
+        <input style="max-width: 300px;" class="form-control" id="paid" type="text" name="paid" placeholder="0.00" value="{{ checkout.paid|floatformat:2 }}">
+        </div>
+        <input class="btn btn-primary" type="submit" name="paid-form" value="$ Paid">
         </form>
-    <form action="{% url 'swapp:checkout' checkout.id %}" method="post">
+    <form id="payment-confirmation-form" action="{% url 'swapp:checkout' checkout.id %}" method="post">
     {% csrf_token %}
         <input class="btn btn-primary {% if checkout.change < 0 %}disabled{% endif %}" type="submit" name="checkout-done" value="Confirm Payment">
         <input
                 id='cancel-checkout-btn'
-                onclick="alert('{{ cancel_warning }}')"
+                onclick="return confirmCancel('{{ confirm_cancel }}')"
                 class="btn btn-secondary"
                 type="submit"
                 name="checkout-done"
@@ -88,14 +97,7 @@
     {% else %}
         <a href="{% url 'swapp:new-checkout' %}" class="btn btn-primary">+ New Checkout</a>
         <a href="{% url 'swapp:select-checkout' %}" class="btn btn-secondary" >x Close</a>
-        <button class="btn btn-info" onclick="exportReport()">Export</button>
+        <button class="btn btn-info" onclick="exportReport('{% url 'swapp:checkout-export' checkout.id %}')">Export</button>
     {% endif %}
 
-    <script type="application/javascript">
-        function exportReport() {
-            let win = window.open("{% url 'swapp:checkout-export' checkout.id %}");
-            win.print();
-            setTimeout(function() {win.close()}, 10);
-        }
-    </script>
 {% endblock %}

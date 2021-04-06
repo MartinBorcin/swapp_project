@@ -1,22 +1,14 @@
 {% extends 'swapp/base.html' %}
+{% load staticfiles %}
 
 {% block title_block %}
     All Items
 {% endblock %}
 
 {% block body_block %}
-    <h1>All Items</h1>
-
-    <div>
-    <h2>Legend</h2>
-        <ul>
-            <li><i>? (icon)</i> = not checked in yet (all items before Event starts)</li>
-            <li><i>X (icon)</i> = never checked in or already sold</li>
-            <li><i>V (icon)</i> = checked in and still available</li>
-        </ul>
-    </div>
-
-    <div>
+    <h1 class="mb-5">All Items</h1>
+    <div class="mb-3">
+    <h3>What are you looking for?</h3>
     <form method="GET" id="search" action=".">
         {% csrf_token %}
         <input style="max-width: 500px" class="form-control mb-3" type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." autofocus/>
@@ -36,9 +28,9 @@
     </div>
 
     <div id="search-results" >
-         <ul>
+         <ul class="p-0">
              {% for item in items %}
-                 <div onclick="openItemView('{{ item.id }}')" class="card mb-3" style="max-width: 540px;">
+                 <div onclick="openItemView('{{ item.id }}')" class="card mb-3" style="max-width: 650px;">
                      <div class="row g-0">
                          {% if item.picture %}
                          <div class="col-md-4">
@@ -112,11 +104,4 @@
         {% endif %}
     </ul>
     </nav>
-
-    <script type="application/javascript">
-    function openItemView(item_id) {
-        const itemModal = new bootstrap.Modal(document.getElementById('view-item-' + item_id));
-        itemModal.toggle()
-    }
-    </script>
 {% endblock %}

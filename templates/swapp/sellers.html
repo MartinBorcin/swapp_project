@@ -5,8 +5,8 @@
 {% endblock %}
 
 {% block body_block %}
-    <h1>Sellers</h1>
-    <form method="GET" id="search" action=".">
+    <h1 class="mb-5">Sellers</h1>
+    <form class="mb-3" method="GET" id="search" action=".">
         {% csrf_token %}
         <input style="max-width: 500px" class="form-control mb-3" type="search" name="q" value="{{ request.GET.q }}" placeholder="Search..." autofocus/>
 

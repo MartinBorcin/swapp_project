@@ -6,35 +6,86 @@
 {% endblock %}
 
 {% block body_block %}
-    <h1>Welcome to {{ event.name }}</h1>
+    <h1 class="mb-5">Welcome to {{ event.name }}</h1>
+    <div class="mb-3">
     <h2>Basic Info</h2>
         <p> {{ event.description }}  </p>
         <p><strong>Location: </strong>{{ event.location }}</p>
         <p><strong>Time: </strong>{{ event.start_time }} - {{ event.end_time }}</p>
+    </div>
+    <div class="mb-3">
     <h2>Announcements</h2>
-    <ul>
+    <ul class="p-0">
     {% for ann in announcements %}
-        <li>
-        <h3>{{ ann.title }}</h3>
-        <em> - posted by {{ ann.posted_by }} on {{ ann.timestamp }}<br/></em>
-        {% if ann.picture %}
-            <img src="{{ MEDIA_URL }}{{ ann.picture }}" alt="{{ ann.picture }}" />
-        {% endif %}
-        <p>{{ ann.announcement }}</p>
-        </li>
+        <div class="card mb-3" style="max-width: 650px;">
+             <div class="row g-0">
+                 {% if ann.picture %}
+                 <div class="col-md-4">
+                     <img id="item-image" src="{{ MEDIA_URL }}{{ ann.picture }}" alt="{{ ann.picture }}" />
+                 </div>
+                 {% endif %}
+                 <div class="col-md-8">
+                     <div class="card-body">
+                         <h5 class="card-title">{{ ann.title }}</h5>
+                         <em> - posted by {{ ann.posted_by }} on {{ ann.timestamp }}<br/></em>
+                         <p id="item-desc" class="card-text">{{ ann.announcement }}.</p>
+                     </div>
+                 </div>
+             </div>
+         </div>
+
     {% endfor %}
     </ul>
-        <h2>Featured Items</h2>
-    <ul>
-    {% for item in featured_items %}
-        <li>
-        <h3>{{ item.name }}</h3>
-        {% if item.image %}
-            <img src="{{ MEDIA_URL }}item_pictures/{{ item.image }}" alt="{{ item.image }}" />
-        {% endif %}
-        <p>{{ item.desc }}</p>
-        <em>£{{ item.price }}</em>
-        </li>
-    {% endfor %}
-    </ul>
+    </div>
+    <div class="mb-3">
+    <h2>Featured Items</h2>
+    <ul class="p-0">
+         {% for item in featured_items %}
+             <div onclick="openItemView('{{ item.id }}')" class="card mb-3" style="max-width: 650px;">
+                 <div class="row g-0">
+                     {% if item.picture %}
+                     <div class="col-md-4">
+                         <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                     </div>
+                     {% endif %}
+                     <div class="col-md-8">
+                         <div class="card-body">
+                             <h5 class="card-title">{{ item.name }}</h5>
+                             <p id="item-desc" class="card-text">{{ item.description }}.</p>
+                             <em id="item-price" class="card-text">£{{ item.price }}</em><br/>
+                             <!-- TODO: add bootstrap icons -->
+                             <span id="item-avail" class="card-text">Available: <i>{% if item.checked and not item.sold %}YES{% else %}NO{% endif %}</i></span><br/>
+                             <button type="button" class="btn btn-primary" >View</button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="view-item-{{ item.id }}" tabindex="-1" >
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title">Item</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h4>{{ item.name }}</h4>
+                            <em>item #{{ item.id }}</em><br/>
+                            {% if item.picture %}
+                                <img id="item-image-modal" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                            {% endif %}
+                            <p>{{ item.description }}</p>
+                            <strong>£{{ item.price }}</strong><br/>
+                            <span id="item-avail" class="card-text">Available: <i>{% if item.checked and not item.sold %}YES{% else %}NO{% endif %}</i></span><br/>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+         {% endfor %}
+     </ul>
+    </div>
 {% endblock %}

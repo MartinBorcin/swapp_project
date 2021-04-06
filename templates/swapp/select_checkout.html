@@ -5,9 +5,11 @@
 {% endblock %}
 
 {% block body_block %}
-    <h1>Checkout</h1>
+    <h1 class="mb-5">Checkout</h1>
+    <div class="mb-3">
     <h2>Whould you like to start a new checkout session?</h2>
     <a href="{% url 'swapp:new-checkout' %}" class="btn btn-primary">+ New</a>
+    </div>
     <h2>Active checkout sessions:</h2>
     <ul>
     {% for checkout_session in active_sessions %}

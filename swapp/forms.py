@@ -55,12 +55,40 @@ class RegistrationStartTimeForm(forms.ModelForm):
         model = models.Event
         fields = {"registration_start_time"}
 
+    def clean_registration_start_time(self):
+        registration_start_time = self.cleaned_data.get("registration_start_time")
+        current_event = Event.objects.get(pk=1)
+        if registration_start_time > current_event.end_time:
+            raise forms.ValidationError(
+                "Registration can't start after the event ends (%(end)s)",
+                params={"end": current_event.end_time},
+                code='late',
+            )
+        elif registration_start_time > current_event.registration_end_time:
+            raise forms.ValidationError(
+                "Registration can't start after it ends (%(end)s)",
+                params={"end": current_event.registration_end_time},
+                code='late',
+            )
+        return registration_start_time
+
 
 class RegistrationEndTimeForm(forms.ModelForm):
 
     class Meta:
         model = models.Event
         fields = {"registration_end_time"}
+
+    def clean_registration_end_time(self):
+        registration_end_time = self.cleaned_data.get("registration_end_time")
+        current_event = Event.objects.get(pk=1)
+        if registration_end_time < current_event.registration_start_time:
+            raise forms.ValidationError(
+                "Registration can't end before it starts (%(start)s)",
+                params={"start": current_event.registration_start_time},
+                code='early',
+            )
+        return registration_end_time
 
 
 class EventStartTimeForm(forms.ModelForm):
@@ -69,12 +97,34 @@ class EventStartTimeForm(forms.ModelForm):
         model = models.Event
         fields = {"start_time"}
 
+    def clean_start_time(self):
+        start_time = self.cleaned_data.get("start_time")
+        current_event = Event.objects.get(pk=1)
+        if start_time > current_event.end_time:
+            raise forms.ValidationError(
+                "Event can't start after it ends (%(end)s)",
+                params={"end": current_event.end_time},
+                code='late',
+            )
+        return start_time
+
 
 class EventEndTimeForm(forms.ModelForm):
 
     class Meta:
         model = models.Event
         fields = {"end_time"}
+
+    def clean_end_time(self):
+        end_time = self.cleaned_data.get("end_time")
+        current_event = Event.objects.get(pk=1)
+        if end_time < current_event.start_time:
+            raise forms.ValidationError(
+                "Event can't end before it starts (%(start)s)",
+                params={"start": current_event.start_time},
+                code='late',
+            )
+        return end_time
 
 
 class EventLocationForm(forms.ModelForm):
@@ -113,3 +163,6 @@ class ItemForm(forms.ModelForm):
     class Meta:
         model = models.Item
         fields = ["name", "picture", "description", "price"]
+        widgets = {
+            "description": forms.Textarea(attrs={"cols": 40, "rows": 5})
+        }

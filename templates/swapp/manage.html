@@ -1,160 +1,282 @@
 {% extends "swapp/base.html" %}
+{% load widget_tweaks %}
 
 {% block title_block %}
     Manage
 {% endblock %}
 
 {% block body_block %}
-    <h1>Manage</h1>
+    <h1 class="mb-5">Manage</h1>
 
-    <div id="status-report">
-        <h2>Status</h2>
+    <div class="mb-5" id="status-report">
+        <h2 class="mb-3">Status</h2>
         <h5 id="sold-items-counter"></h5>
-        <div class="progress mb-2">
+        <div class="progress mb-3">
             <div id="sold-items-progress" class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <h5 id="remaining-time-counter"></h5>
-        <div class="progress mb-2">
+        <div class="progress mb-3">
           <div id='remaining-time-progress' class="progress-bar bg-info" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <h5 id="remaining-reg-time-counter" ></h5>
-        <div class="progress mb-2">
+        <div class="progress mb-3">
           <div id='remaining-reg-time-progress' class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <h5 id="reg-counter" ></h5>
-        <div class="progress mb-2">
+        <div class="progress mb-3">
           <div id='reg-progress' class="progress-bar bg-warning" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     </div>
 
     <div id="new-announcement">
-        <h2>New Announcement</h2>
-        <form class="mt-5 mb-3" id="announcement_form" action="{% url 'swapp:manage' %}" method="post" enctype="multipart/form-data">
+        <h2 class="mb-3">New Announcement</h2>
+        <form style="max-width: 700px" class="mb-5" id="announcement_form" action="{% url 'swapp:manage' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ announcement_form.as_p }}
-            <input type="submit" name="{{ announcement_form.prefix }}" value="Publish">
+            {% for field in announcement_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if announcement_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-primary" type="submit" name="{{ announcement_form.prefix }}" value="Publish">
         </form>
     </div>
 
-    <div id="reg-control">
-        <h2>Registration</h2>
-        <form class="mt-5 mb-3" id="reg_start_form" action="{% url 'swapp:manage' %}" method="post">
+    <div class="mb-5" id="reg-control">
+        <h2 class="mb-3">Registration</h2>
+        <form style="max-width: 350px" class="mb-3" id="reg_start_form" action="{% url 'swapp:manage' %}" method="post">
             {% csrf_token %}
-            {{ registration_start_form.as_p }}
-            <input type="submit" name="{{ registration_start_form.prefix }}" value="Set">
-            <input type="submit" name="reg-start-manual" value="Manually start registration now">
+            {% for field in registration_start_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if registration_start_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-outline-primary" type="submit" name="{{ registration_start_form.prefix }}" value="Set">
+            <input class="btn btn-outline-danger mx-2" type="submit" name="reg-start-manual" value="Manually start registration now">
         </form>
-        <form id="reg_end_form" action="{% url 'swapp:manage' %}" method="post">
+        <form style="max-width: 350px" class="mb-3" id="reg_end_form" action="{% url 'swapp:manage' %}" method="post">
             {% csrf_token %}
-            {{ registration_end_form.as_p }}
-            <input type="submit" name="{{ registration_end_form.prefix }}" value="Set">
-            <input type="submit" name="reg-end-manual" value="Manually end registration now">
+            {% for field in registration_end_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if registration_end_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-outline-primary" type="submit" name="{{ registration_end_form.prefix }}" value="Set">
+            <input class="btn btn-outline-danger mx-2" type="submit" name="reg-end-manual" value="Manually end registration now">
         </form>
-        <form id="reg_cap_form" action="{% url 'swapp:manage' %}" method="post">
+        <form style="max-width: 350px" class="mb-3" id="reg_cap_form" action="{% url 'swapp:manage' %}" method="post">
             {% csrf_token %}
-            {{ registration_cap_form.as_p }}
-            <input type="submit" name="{{ registration_cap_form.prefix }}" value="Set">
+            {% for field in registration_cap_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if registration_cap_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-outline-primary" type="submit" name="{{ registration_cap_form.prefix }}" value="Set">
         </form>
     </div>
 
     <div id="event-contol">
         <h2>Event - {{ event.name }}</h2>
-        <form class="mt-5 mb-3" id="event_start_form" action="{% url 'swapp:manage' %}" method="post">
+        <form style="max-width: 350px" class="mb-3" class="mt-5 mb-3" id="event_start_form" action="{% url 'swapp:manage' %}" method="post">
             {% csrf_token %}
-            {{ event_start_form.as_p }}
-            <input type="submit" name="{{ event_start_form.prefix }}" value="Set">
-            <input type="submit" name="event-start-manual" value="Manually start event now">
+            {% for field in event_end_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if event_end_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-outline-primary" type="submit" name="{{ event_start_form.prefix }}" value="Set">
+            <input class="btn btn-outline-danger mx-2" type="submit" name="event-start-manual" value="Manually start event now">
         </form>
-        <form id="event_end_form" action="{% url 'swapp:manage' %}" method="post">
+        <form style="max-width: 350px" class="mb-3" id="event_end_form" action="{% url 'swapp:manage' %}" method="post">
             {% csrf_token %}
-            {{ event_end_form.as_p }}
-            <input type="submit" name="{{ event_end_form.prefix }}" value="Set">
-            <input type="submit" name="event-end-manual" value="Manually end event now">
+            {% for field in event_end_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if event_end_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-outline-primary" type="submit" name="{{ event_end_form.prefix }}" value="Set">
+            <input class="btn btn-outline-danger mx-2" type="submit" name="event-end-manual" value="Manually end event now">
         </form>
-        <form id="event_loc_form" action="{% url 'swapp:manage' %}" method="post">
+        <form style="max-width: 350px" class="mb-3" id="event_loc_form" action="{% url 'swapp:manage' %}" method="post">
             {% csrf_token %}
-            {{ event_loc_form.as_p }}
-            <input type="submit" name="{{ event_loc_form.prefix }}" value="Set">
+            {% for field in event_loc_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if event_loc_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-outline-primary" type="submit" name="{{ event_loc_form.prefix }}" value="Set">
         </form>
-        <form id="event_desc_form" action="{% url 'swapp:manage' %}" method="post">
+        <form style="max-width: 350px" class="mb-3" id="event_desc_form" action="{% url 'swapp:manage' %}" method="post">
             {% csrf_token %}
-            {{ event_desc_form.as_p }}
-            <input type="submit" name="{{ event_desc_form.prefix }}" value="Set">
+            {% for field in event_desc_form %}
+                <div class="form-group mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if event_desc_form.is_bound %}
+                        {% if field.errors %}
+                            {% render_field field class="form-control is-invalid" %}
+                            {% for invalid in field.errors %}
+                                <div class="invalid-feedback">
+                                    {{ invalid }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {% render_field field class="form-control is-valid" %}
+                        {% endif %}
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input class="btn btn-outline-primary" type="submit" name="{{ event_desc_form.prefix }}" value="Set">
         </form>
     </div>
 
     <script type="application/javascript">
-
-    function getTimerStatus(startTimestamp, endTimestamp) {
-        let now = new Date();
-        let endTime = new Date(endTimestamp);
-        let startTime = new Date(startTimestamp);
-        let totalDuration = endTime - startTime;
-        let currentDuration = now - startTime;
-        let remainingDuration = endTime - now;
-        let progressPercent = currentDuration * 100 / totalDuration;
-
-        if (remainingDuration < 0) remainingDuration = 0;
-        if (progressPercent > 100) progressPercent = 100;
-
-        return {
-            "progressPercent": progressPercent,
-            "remainingDays": Math.floor(remainingDuration / (1000 * 60 * 60 * 24)), // remaining time / ms in day
-            "remainingHours": Math.floor((remainingDuration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), // remaining time % ms in day / ms in hour
-            "remainingMinutes": Math.floor((remainingDuration % (1000 * 60 * 60)) / (1000 * 60)), // remaining time % ms in hour / ms in minute
-            "remainingSeconds": Math.floor((remainingDuration % (1000 * 60)) / 1000), // remaining time % ms in minute / ms in sec
-        };
-    }
-
-    function refreshEventTimer() {
-        let status = getTimerStatus({{ event_start_timestamp }}, {{ event_end_timestamp }})
-
-        let time_counter = document.getElementById('remaining-time-counter');
-        let time_progress = document.getElementById('remaining-time-progress');
-        time_counter.innerHTML = "Remaining time until end of event: " + status.remainingDays + " days " + status.remainingHours + "h " + status.remainingMinutes + 'm ' + status.remainingSeconds + "s";
-        time_counter.setAttribute('aria-valuenow', status.progressPercent.toString())
-        time_progress.style.width = status.progressPercent + "%";
-
-    }
-
-    function refreshRegTimer() {
-        let status = getTimerStatus({{ reg_start_timestamp }}, {{ reg_end_timestamp }})
-
-        let time_counter = document.getElementById('remaining-reg-time-counter');
-        let time_progress = document.getElementById('remaining-reg-time-progress');
-        time_counter.innerHTML = "Remaining registration time: " + status.remainingDays + " days " + status.remainingHours + "h " + status.remainingMinutes + 'm ' + status.remainingSeconds + "s";
-        time_counter.setAttribute('aria-valuenow', status.progressPercent.toString())
-        time_progress.style.width = status.progressPercent + "%";
-    }
-
-    function refreshItemsAndRegs() {
-        let items_counter = document.getElementById('sold-items-counter');
-        let items_progress = document.getElementById('sold-items-progress');
-
-        let reg_counter = document.getElementById('reg-counter');
-        let reg_progress = document.getElementById('reg-progress');
-
-        let newStatus = new XMLHttpRequest();
-        newStatus.onreadystatechange = function () {
-            if (newStatus.readyState === 4 && newStatus.status === 200) {
-                let status = JSON.parse(newStatus.response);
-                items_counter.innerHTML = "Sold " + status.sold_items_count + "/" + status.approved_items_count + " items so far, for a total of £" + status.money_collected + " (£" + status.money_earned + " for you)";
-                items_progress.style.width = status.items_progress_percent + "%";
-                items_progress.setAttribute('aria-valuenow', status.items_progress_percent.toString())
-
-                reg_counter.innerHTML = "Registered sellers: " + status.reg_count + "/" + status.reg_cap;
-                reg_progress.style.width = status.reg_progress_percent + '%';
-                reg_progress.setAttribute('aria-valuenow', status.reg_progress_percent);
-            }
-        }
-        newStatus.open("GET", "{% url 'swapp:refresh-status' %}", true);
-        newStatus.send();
-    }
-    refreshItemsAndRegs()
-    refreshEventTimer()
-    refreshRegTimer()
-    setInterval(function () {refreshEventTimer(); refreshRegTimer()}, 1000) // refresh countdown every second
-    setInterval(refreshItemsAndRegs, 5000) // refresh sold items and registrations count every 5 seconds
+    refreshItemsAndRegs("{% url 'swapp:refresh-status' %}")
+    refreshEventTimer({{ event_start_timestamp }}, {{ event_end_timestamp }})
+    refreshRegTimer({{ reg_start_timestamp }}, {{ reg_end_timestamp }})
+    // refresh countdown every second
+    setInterval(
+        function () {
+            refreshEventTimer({{ event_start_timestamp }}, {{ event_end_timestamp }});
+            refreshRegTimer({{ reg_start_timestamp }}, {{ reg_end_timestamp }})
+        }, 1000
+    )
+    // refresh sold items and registrations count every 5 seconds
+    setInterval(
+        function () {
+            refreshItemsAndRegs("{% url 'swapp:refresh-status' %}")
+        }, 5000
+    )
     </script>
 
 {% endblock %}

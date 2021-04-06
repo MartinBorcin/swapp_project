@@ -5,17 +5,19 @@
 {% endblock %}
 
 {% block body_block %}
-    <h1>Login</h1>
+    <h1 class="mb-5">Login</h1>
 
     {% if user.is_authentiated %}
         <h2>You are currently logged in as {{ user.username }}.</h2>
     {% else %}
 
-        {% if message %}
-            <p>{{ message }}</p>
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
         {% endif %}
 
-        <form style="max-width: 35%;" class="mt-5" id="login_form" method="post" action=".">
+        <form style="max-width: 35%;" id="login_form" method="post" action=".">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="username-field" class="form-label">Username</label>
