@@ -1,4 +1,5 @@
 {% extends 'swapp/base.html' %}
+{% load thumbnail %}
 {% load staticfiles %}
 
 {% block title_block %}
@@ -32,11 +33,13 @@
              {% for item in items %}
                  <div onclick="openItemView('{{ item.id }}')" class="card mb-3" style="max-width: 650px;">
                      <div class="row g-0">
-                         {% if item.picture %}
-                         <div class="col-md-4">
-                             <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                         <div class="col-md-4 d-flex justify-content-center align-items-center">
+                             {% thumbnail item.picture "200x200" as im %}
+                                 <img id="item-image-{{ image.id }}" width="{{ im.width }}" height="{{ im.height }}" src="{{ im.url }}" alt="{{ im.picture }}" />
+                             {% empty %}
+                                 <p>No Image</p>
+                             {% endthumbnail %}
                          </div>
-                         {% endif %}
                          <div class="col-md-8">
                              <div class="card-body">
                                  <h5 class="card-title">{{ item.name }}</h5>
