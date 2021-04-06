@@ -14,7 +14,7 @@ from django.contrib.auth.models import User, Group
 def populate():
     items_jon = [
         {'name': 'Popobawa',
-         'description': 'A demon that rapes people',
+         'description': 'A picture of a demon that scares people',
          'price': '666.66',
          'checked': 'True',
          'picture': 'item_pictures/popobawa-demon.jpg',
@@ -28,7 +28,7 @@ def populate():
          'picture': 'item_pictures/3.jpg',
          },
         {'name': 'Medium Neon Green Short-Sleeved T-Shirt',
-         'description': 'Either Green or Yellow. Depends on your eyes. Come and see',
+         'description': 'Disputable colour. Come and see',
          'price': '12.00',
          'picture': 'item_pictures/2.jpg',
          },
@@ -73,7 +73,8 @@ def populate():
     announcements = [
         {'title': 'Lost AirPods',
          'picture': 'announcements/headphones.jpeg',
-         'description': "The person who lost these headphones in the toilet on second floor should come and clean them.",
+         'description': "The person who lost these headphones in the bathroom on the second floor should come and "
+                        "pick them up at the building entrance.",
          'timestamp': timezone.now(), },
     ]
 
