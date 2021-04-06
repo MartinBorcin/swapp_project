@@ -11,6 +11,11 @@
         <h2>Thank you for registering, {{ user.username }}.</h2>
     {% else %}
         <h2>New Seller</h2>
+        {% for error in user_form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
         <form style="max-width: 35%;" class="mt-3" id="reg_form" action="." method="post">
             {% csrf_token %}
             {% for field in user_form %}

@@ -31,9 +31,10 @@ def update(request):
 
 
 def index(request):
-    announce = Announcement.objects.all()
+    announce = Announcement.objects.all().order_by("-timestamp")
     event = Event.objects.get(id=1)
-    id_selection = sample([item.id for item in Item.objects.all()], 3)
+    available_items = Item.objects.filter(sold=False, checked=True)
+    id_selection = sample([item.id for item in available_items], min((5, available_items.count())))
     featured_items = Item.objects.filter(id__in=id_selection)
     context_dict = {
         "announcements": announce,
@@ -71,7 +72,6 @@ def register(request):
     registered = False
     if request.method == 'POST':
         user_form = UserForm(request.POST)
-
         if user_form.is_valid():
             user = user_form.save()
             user.set_password(user.password)
@@ -90,16 +90,23 @@ def register(request):
 
 
 def items(request):
-    # TODO: display number of results
     query = request.GET.get('q', '')
     ordering = request.GET.get('order', 'name')
     if not ordering:
         ordering = 'name'
+    event = Event.objects.get(id=1)
     filtered_items = Item.objects.filter(Q(name__icontains=query) | Q(description__icontains=query)).order_by(ordering)
-    paginator = Paginator(filtered_items, 2)
+    # filter out sold items after the event starts
+    if tz.now() >= event.start_time:
+        filtered_items = filtered_items.filter(sold=False)
+    paginator = Paginator(filtered_items, 5)
     page = request.GET.get('page', 1)
     items_on_page = paginator.get_page(page)
-    return render(request, 'swapp/items.html', context={"search_query": query, "items": items_on_page})
+    return render(request, 'swapp/items.html', context={
+        "search_query": query,
+        "items": items_on_page,
+        "number_of_results": filtered_items.count(),
+    })
 
 
 def my_items(request, username):
@@ -123,6 +130,7 @@ def my_items(request, username):
                 item_form.save()
 
         if "item_new_form" in request.POST:
+            print(request.POST)
             new_item_form = ItemForm(request.POST, request.FILES, prefix="item_new_form")
             if new_item_form.is_valid():
                 new_item = new_item_form.save(commit=False)
@@ -133,7 +141,7 @@ def my_items(request, username):
 
     user_items = Item.objects.filter(seller=user)
     filtered_items = user_items.filter(Q(name__icontains=request.q) | Q(description__icontains=request.q)).order_by(request.order)
-    paginator = Paginator(filtered_items, 2)
+    paginator = Paginator(filtered_items, 5)
     request.page = min((int(request.page), paginator.num_pages))
     items_on_page = paginator.get_page(request.page)
 
@@ -398,7 +406,7 @@ def checkout(request, checkout_id):
                 check.save()
                 return redirect('swapp:checkout', checkout_id)
 
-            elif action == 'Cancel':
+            elif action == 'Delete Checkout':
                 for item in checkout_items:
                     item.sold_in = None
                     item.save()

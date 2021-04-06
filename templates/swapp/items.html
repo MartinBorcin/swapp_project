@@ -29,9 +29,12 @@
     </div>
 
     <div id="search-results" >
+        {% if not request.GET.q == "" %}
+        <p>Found {{ number_of_results }} results: </p>
+        {% endif %}
          <ul class="p-0">
              {% for item in items %}
-                 <div onclick="openItemView('{{ item.id }}')" class="card mb-3" style="max-width: 650px;">
+                 <div onclick="openItemView('{{ item.id }}')" class="card mb-3 {% if item.checked %}border-success{% else %}border-warning{% endif %}" style="max-width: 650px;">
                      <div class="row g-0">
                          <div class="col-md-4 d-flex justify-content-center align-items-center">
                              {% thumbnail item.picture "200x200" as im %}

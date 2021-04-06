@@ -62,7 +62,7 @@ function refreshItemsAndRegs(refreshUrl) {
     newStatus.onreadystatechange = function () {
         if (newStatus.readyState === 4 && newStatus.status === 200) {
             let status = JSON.parse(newStatus.response);
-            items_counter.innerHTML = "Sold " + status.sold_items_count + "/" + status.approved_items_count + " items so far, for a total of £" + status.money_collected + " (£" + status.money_earned + " for you)";
+            items_counter.innerHTML = "Sold " + status.sold_items_count + "/" + status.approved_items_count + " items so far, for a total of £" + status.money_collected.toFixed(2) + " (£" + status.money_earned.toFixed(2) + " for you)";
             items_progress.style.width = status.items_progress_percent + "%";
             items_progress.setAttribute('aria-valuenow', status.items_progress_percent.toString())
 
@@ -115,6 +115,7 @@ function checkInItem(item_id, checkInUrl) {
     let checked_in_button = document.getElementById('check-in-button-'+item_id);
     let delete_item_button = document.getElementById('delete-item-btn-'+item_id);
     let edit_item_button = document.getElementById('edit-item-btn-'+item_id);
+    let item_card = document.getElementById('item-card-'+item_id);
 
     let checkIn = new XMLHttpRequest();
     checkIn.onreadystatechange = function () {
@@ -125,18 +126,22 @@ function checkInItem(item_id, checkInUrl) {
                 checked_in_indicator_modal.innerHTML = "Checked-in: YES";
                 checked_in_button.classList.remove('btn-outline-warning');
                 checked_in_button.classList.add('btn-warning');
-                delete_item_button.classList.add('disabled')
-                edit_item_button.classList.add('disabled')
+                delete_item_button.classList.add('disabled');
+                edit_item_button.classList.add('disabled');
+                item_card.classList.remove('border-danger');
+                item_card.classList.add('border-warning');
             } else {
                 checked_in_indicator.innerHTML = "Checked-in: NO";
                 checked_in_indicator_modal.innerHTML = "Checked-in: NO";
                 checked_in_button.classList.add('btn-outline-warning');
                 checked_in_button.classList.remove('btn-warning');
-                delete_item_button.classList.remove('disabled')
-                edit_item_button.classList.remove('disabled')
+                delete_item_button.classList.remove('disabled');
+                edit_item_button.classList.remove('disabled');
+                item_card.classList.remove('border-warning');
+                item_card.classList.add('border-danger');
             }
         }
-     }
+    }
     let csrftoken = getCookie('csrftoken');
     checkIn.open("POST", checkInUrl , true);
     checkIn.setRequestHeader("Content-type", "application/x-www-form-urlencoded");

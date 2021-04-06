@@ -84,7 +84,7 @@
          <ul class="p-0">
              {% for item in items %}
                  <div id="item-card-and-modals-{{ item.id }}">
-                 <div class="card mb-3" style="max-width: 650px;">
+                 <div id="item-card-{{ item.id }}" class="card mb-3 {% if item.sold %}border-success{% else %}{% if item.checked %}border-warning{% else %}border-danger{% endif %}{% endif %}" style="max-width: 650px;">
                      <div class="row g-0">
                          <div class="col-md-4 d-flex justify-content-center align-items-center">
                              {% thumbnail item.picture "200x200" as im %}

@@ -13,6 +13,16 @@ class UserForm(UserCreationForm):
         self.fields['last_name'].required = True
         self.fields['email'].required = True
 
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError(
+                "The username '%(username)s' already exists.",
+                params={"username": username},
+                code='unique',
+            )
+        return username
+
     def clean(self):
         now = timezone.now()
         current_event = Event.objects.get(pk=1)
@@ -154,7 +164,10 @@ class RegistrationCapForm(forms.ModelForm):
         cap = self.cleaned_data.get('seller_cap')
         current_seller_count = User.objects.filter(groups__name__contains='Seller').count()
         if cap < current_seller_count:
-            raise forms.ValidationError("The seller cap can't be lower than the current number of registered Sellers (%(count)s)", params={"count": current_seller_count}, code="low")
+            raise forms.ValidationError(
+                "The seller cap can't be lower than the current number of registered Sellers (%(count)s)",
+                params={"count": current_seller_count},
+                code="low")
         return cap
 
 
@@ -166,3 +179,18 @@ class ItemForm(forms.ModelForm):
         widgets = {
             "description": forms.Textarea(attrs={"cols": 40, "rows": 5})
         }
+
+    def clean_price(self):
+        price = self.cleaned_data.get('price')
+        if price < 0.0:
+            raise forms.ValidationError(
+                "Price has to be a positive number",
+                code="negative"
+            )
+        elif price > models.Item.MAX_PRICE:
+            raise forms.ValidationError(
+                "The price is too high. Maximum supported price is %(max_price)s",
+                params={"max_price": models.Item.MAX_PRICE},
+                code="overflow"
+            )
+        return price

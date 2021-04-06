@@ -62,7 +62,9 @@
             <th scope="row">{{ total_count }}</th>
             <td colspan="2">Total</td>
             <td style="text-align: right">{{ checkout.total|floatformat:2 }}</td>
+            {% if not checkout.completed %}
             <td></td>
+            {% endif %}
         </tr>
         </tfoot>
     </table>
@@ -88,10 +90,10 @@
         <input
                 id='cancel-checkout-btn'
                 onclick="return confirmCancel('{{ confirm_cancel }}')"
-                class="btn btn-secondary"
+                class="btn btn-outline-danger"
                 type="submit"
                 name="checkout-done"
-                value="Cancel"
+                value="Delete Checkout"
         >
     </form>
     {% else %}
