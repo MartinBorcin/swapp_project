@@ -12,12 +12,31 @@ from django.contrib.auth.models import User, Group
 
 
 def populate():
+    checkout_time = timezone.now()
     items_jon = [
         {'name': 'Popobawa',
          'description': 'A picture of a demon that scares people',
          'price': '666.66',
          'checked': 'True',
          'picture': 'item_pictures/popobawa-demon.jpg',
+         'checked_in': True,
+         
+         },
+        {'name': 'Exclusive Water bottle 1.5l',
+         'description': 'Mineral water SALVATOR - gem among waters',
+         'price': '0.89',
+         'checked': 'True',
+         'picture': 'item_pictures/Salvator.PNG',
+         'checked_in': True,
+         
+         },
+        {'name': 'Piece of Road',
+         'description': 'On sale 1.6km/1Mile piece of road',
+         'price': '100000',
+         'checked': 'True',
+         'picture': 'item_pictures/road.jpg',
+         'checked_in': True,
+         
          },
     ]
 
@@ -26,11 +45,15 @@ def populate():
          'description': 'Worn only once to impress my colleague. Didn\'t work',
          'price': '420.69',
          'picture': 'item_pictures/3.jpg',
+         'checked_in': False,
+         
          },
         {'name': 'Medium Neon Green Short-Sleeved T-Shirt',
          'description': 'Disputable colour. Come and see',
          'price': '12.00',
          'picture': 'item_pictures/2.jpg',
+         'checked_in': False,
+         
          },
     ]
 
@@ -39,16 +62,42 @@ def populate():
          'description': '2 years old, slightly worn',
          'price': '19.99',
          'picture': 'item_pictures/1.jpg',
+         'checked_in': False,
+         
          },
         {'name': 'Light Grey Extra Large (XL) T-Shirt',
          'description': 'like new. Washed in Perwoll',
          'price': '39.13',
          'picture': 'item_pictures/1.jpg',
+         'checked_in': False,
+         
          },
         {'name': 'My Shoes size 10, Men',
          'description': 'Brand new, open box never worn',
          'price': '69.00',
          'picture': 'item_pictures/3.jpg',
+         'checked_in': False,
+         
+         },
+        {'name': 'Denim Jeans',
+         'description': '2 years old, not worn at all',
+         'price': '39.99',
+         'picture': 'item_pictures/denim.jpg',
+         'checked_in': False,
+         },
+        {'name': 'Jeans 44-36',
+         'description': 'after my dad, too small for him',
+         'price': '25.00',
+         'picture': 'item_pictures/denim.jpg',
+         'checked_in': False,
+         
+         },
+        {'name': 'Some painting',
+         'description': 'very rare, looked after',
+         'price': '169.00',
+         'picture': 'item_pictures/3bupn872myd51.jpg',
+         'checked_in': False,
+         
          },
     ]
 
@@ -57,6 +106,27 @@ def populate():
          'description': 'Either Green or Yellow. Depends on your eyes. Come and see',
          'price': '10.00',
          'picture': 'item_pictures/2.jpg',
+         'checked_in': True,
+         
+         },
+        {'name': 'Red Weatherproof Jacket',
+         'description': '2brand new',
+         'price': '89.95',
+         'picture': 'item_pictures/jacket1.jpg',
+         'checked_in': True,
+         
+         },
+        {'name': 'Blue aviator jacket',
+         'description': 'Used once, too big',
+         'price': '45.50',
+         'picture': 'item_pictures/jacket2.jpg',
+         'checked_in': False,
+         },
+        {'name': 'Vivid color spring jacket',
+         'description': 'come and see the quality. Very nice',
+         'price': '59.99',
+         'picture': 'item_pictures/jacket3.jpg',
+         'checked_in': True,
          },
     ]
 
@@ -78,22 +148,33 @@ def populate():
          'timestamp': timezone.now(), },
     ]
 
-    checkouts_susan = [
-        {'timestamp': timezone.now(),
-         'total': 123.45,
-         'paid': 200.00,
-         'change': 200 - 123.45, },
-        {'timestamp': timezone.now(),
-         'total': 10.00,
-         'paid': 10.00,
-         'change': 0.00, },
-    ]
-
     checkouts_sam = [
         {'timestamp': timezone.now(),
-         'total': 1.45,
-         'paid': 20.00,
-         'change': 20 - 1.45, },
+         'total': '100.84',
+         'paid': '120',
+         'change': '19.16',
+         'completed': True,
+         'items': [
+             {'name': 'Small Neon Yellow Short-Sleeved T-Shirt',
+              'description': 'Either Green or Yellow. Depends on your eyes. Come and see',
+              'price': '10.00',
+              'picture': 'item_pictures/2.jpg',
+              'checked_in': True,
+              },
+             {'name': 'Red Weatherproof Jacket',
+              'description': '2brand new',
+              'price': '89.95',
+              'picture': 'item_pictures/jacket1.jpg',
+              'checked_in': True,
+              },
+             {'name': 'Exclusive Water bottle 1.5l',
+              'description': 'Mineral water SALVATOR - gem among waters',
+              'price': '0.89',
+              'checked': 'True',
+              'picture': 'item_pictures/Salvator.PNG',
+              'checked_in': True,
+              },
+         ]}
     ]
 
     seller_users = {
@@ -105,7 +186,7 @@ def populate():
 
     staff_users = {
         'Susan': {'announcements': [],
-                  'checkouts': checkouts_susan,
+                  'checkouts': [],
                   'events': events, },
         'Sam': {'announcements': announcements,
                 'checkouts': checkouts_sam,
@@ -115,7 +196,7 @@ def populate():
     for seller, seller_data in seller_users.items():
         s = add_seller(seller, username=seller_data['username'])
         for i in seller_data['items']:
-            add_item(s, i['name'], i['description'], i['price'], i['picture'])
+            add_item(s, i['name'], i['description'], i['price'], i['picture'], i['checked_in'])
 
     # (staff, timestamp, total, paid, change)
     for staff, staff_data in staff_users.items():
@@ -123,7 +204,12 @@ def populate():
         for a in staff_data['announcements']:
             add_announcement(s, a['title'], a['description'], a['timestamp'], a['picture'])
         for c in staff_data['checkouts']:
-            add_checkout(s, c['timestamp'], c['total'], c['paid'], c['change'])
+            if not c:
+                pass
+            else:
+                check = add_checkout(s, c['total'], c['paid'], c['change'], c['timestamp'], c['completed'])
+                for i in c['items']:
+                    add_item_to_checkout(i['name'], check)
         for e in staff_data['events']:
             add_event(s, e['name'], e['location'], e['description'], e['start'], e['end'], e['reg_start'], e['reg_end'])
 
@@ -153,24 +239,35 @@ def add_staff(name):
     return staff
 
 
-def add_item(seller, name, description, price, picture):
+def add_item(seller, name, description, price, picture, checked_in=False, sold_in=None):
     item = Item.objects.get_or_create(seller=seller, name=name)[0]
     item.seller = seller
     item.description = description
     item.price = price
     item.picture = picture
+    item.checked = checked_in
+    item.sold_in = sold_in
 
     item.save()
     return item
 
 
-def add_checkout(staff, timestamp, total, paid, change):
-    checkout = Checkout.objects.get_or_create(sold_by=staff, timestamp=timestamp,
-                                              total=total, paid=paid, change=change)[0]
+def add_item_to_checkout(name, sold_in=None):
+    item = Item.objects.get_or_create(name=name)[0]
+    item.sold = True
+    item.sold_in = sold_in
+
+    item.save()
+    return item
+
+
+def add_checkout(staff, total, paid, change, timestamp, completed):
+    checkout = Checkout.objects.get_or_create(sold_by=staff, timestamp=timestamp, completed=completed)[0]
     checkout.sold_by = staff
-    # checkout.total = total
-    # checkout.paid = paid
-    # checkout.change = change
+    checkout.completed = completed
+    checkout.total = total
+    checkout.paid = paid
+    checkout.change = change
 
     checkout.save()
     return checkout
