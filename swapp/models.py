@@ -18,9 +18,9 @@ class Checkout(models.Model):
 
     # django "id" - automatically assigned - no need for them in models
     timestamp = models.DateTimeField()
-    total = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
-    paid = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
-    change = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    total = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    paid = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    change = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     completed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -39,7 +39,7 @@ class Item(models.Model):
     DESCRIPTION_MAX_LENGTH = 250
     name = models.CharField(max_length=NAME_MAX_LENGTH)
     # django "id" - automatically assigned - no need for them in models
-    price = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH, blank=True)
     # defaults to False
     sold = models.BooleanField(default=False)
