@@ -1,5 +1,6 @@
 {% extends 'swapp/base.html' %}
 {% load staticfiles %}
+{% load thumbnail %}
 
 {% block title_block %}
     Home
@@ -19,16 +20,18 @@
     {% for ann in announcements %}
         <div class="card mb-3" style="max-width: 650px;">
              <div class="row g-0">
-                 {% if ann.picture %}
-                 <div class="col-md-4">
-                     <img id="item-image" src="{{ MEDIA_URL }}{{ ann.picture }}" alt="{{ ann.picture }}" />
+                {% if ann.picture %}
+                 <div class="col-md-4 d-flex justify-content-center align-items-center">
+                     {% thumbnail ann.picture "200x200" as im %}
+                         <img id="ann-image-{{ ann.id }}" width="{{ im.width }}" height="{{ im.height }}" src="{{ im.url }}" alt="{{ im.picture }}" />
+                     {% endthumbnail %}
                  </div>
-                 {% endif %}
+                {% endif %}
                  <div class="col-md-8">
                      <div class="card-body">
                          <h5 class="card-title">{{ ann.title }}</h5>
                          <em> - posted by {{ ann.posted_by }} on {{ ann.timestamp }}<br/></em>
-                         <p id="item-desc" class="card-text">{{ ann.announcement }}.</p>
+                         <p id="item-desc" class="card-text">{{ ann.announcement }}</p>
                      </div>
                  </div>
              </div>
@@ -41,13 +44,16 @@
     <h2>Featured Items</h2>
     <ul class="p-0">
          {% for item in featured_items %}
+
              <div onclick="openItemView('{{ item.id }}')" class="card mb-3" style="max-width: 650px;">
                  <div class="row g-0">
-                     {% if item.picture %}
-                     <div class="col-md-4">
-                         <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                     <div class="col-md-4 d-flex justify-content-center align-items-center">
+                         {% thumbnail item.picture "200x200" as im %}
+                             <img id="item-image-{{ image.id }}" width="{{ im.width }}" height="{{ im.height }}" src="{{ im.url }}" alt="{{ im.picture }}" />
+                         {% empty %}
+                             <p>No Image</p>
+                         {% endthumbnail %}
                      </div>
-                     {% endif %}
                      <div class="col-md-8">
                          <div class="card-body">
                              <h5 class="card-title">{{ item.name }}</h5>

@@ -1,4 +1,5 @@
 {% extends 'swapp/base.html' %}
+{% load thumbnail %}
 {% load widget_tweaks %}
 {% load swapp_template_tags %}
 {% load staticfiles %}
@@ -85,11 +86,13 @@
                  <div id="item-card-and-modals-{{ item.id }}">
                  <div class="card mb-3" style="max-width: 650px;">
                      <div class="row g-0">
-                         {% if item.picture %}
-                         <div class="col-md-4">
-                             <img id="item-image" src="{{ MEDIA_URL }}{{ item.picture }}" alt="{{ item.picture }}" />
+                         <div class="col-md-4 d-flex justify-content-center align-items-center">
+                             {% thumbnail item.picture "200x200" as im %}
+                                 <img id="item-image-{{ image.id }}" width="{{ im.width }}" height="{{ im.height }}" src="{{ im.url }}" alt="{{ im.picture }}" />
+                             {% empty %}
+                                 <p>No Image</p>
+                             {% endthumbnail %}
                          </div>
-                         {% endif %}
                          <div class="col-md-8">
                              <div class="card-body">
                                  <h5 class="card-title">{{ item.name }}</h5>
@@ -122,7 +125,7 @@
                                 <h1 class="modal-title">Edit Item #{{ item.id }}</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-							<form class="m-3" id="item_edit_form" action="." method="post">
+							<form class="m-3" id="item_edit_form" action="." method="post" enctype="multipart/form-data">
 								{% csrf_token %}
                                 {% for field in item.edit_form %}
                                     <div class="form-group mb-3">

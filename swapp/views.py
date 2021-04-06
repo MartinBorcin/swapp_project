@@ -20,11 +20,6 @@ from django.contrib.auth import logout, login, authenticate
 @csrf_exempt
 def update(request):
     if request.method == "POST":
-        '''
-        pass the path of the diectory where your project will be 
-        stored on PythonAnywhere in the git.Repo() as parameter.
-        Here the name of my directory is "test.pythonanywhere.com"
-        '''
         repo = git.Repo("/home/swappproject/swapp_project")
         origin = repo.remotes.origin
 
@@ -33,9 +28,6 @@ def update(request):
         return HttpResponse("Updated code on PythonAnywhere")
     else:
         return HttpResponse("Couldn't update the code on PythonAnywhere")
-
-
-# Create your views here.
 
 
 def index(request):
@@ -126,7 +118,7 @@ def my_items(request, username):
         if "item_edit_form" in request.POST:
             item_id = request.POST.get('item_id')
             item = Item.objects.get(id=item_id)
-            item_form = ItemForm(request.POST, prefix='item_edit_form', instance=item)
+            item_form = ItemForm(request.POST, request.FILES, prefix='item_edit_form', instance=item)
             if item_form.is_valid():
                 item_form.save()
 

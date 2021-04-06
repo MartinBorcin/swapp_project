@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'swapp',
     'widget_tweaks',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
